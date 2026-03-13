@@ -1,0 +1,6294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classroom Dashboard - Sprout</title>
+<style>
+  :root {
+    --card-w: 100%;
+    --max-card-w: 380px;
+    --area-h: 180px;
+    --star-size: 34;
+    --primary: #2e8b57;
+    --accent: #f1c40f;
+    --bg-gradient: linear-gradient(180deg, #f0f8ff, #e6f7ef);
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-md: 0 10px 30px -5px rgba(20, 40, 30, 0.1);
+  }
+  
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg-gradient);
+    margin: 0;
+    min-height: 100vh;
+    color: #333;
+    overflow-x: hidden; 
+  }
+  
+  /* 1. Canvas Comfort Padding */
+  #app-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px;
+    padding-top: 80px;
+    max-width: 98vw;
+    margin: 0 auto;
+    width: auto;
+    box-sizing: border-box;
+    padding-bottom: 200px; /* Dead space for comfortable scrolling */
+  }
+
+  /* 2. Ocean Green Lock Button */
+  #side-menu-lock-btn {
+    color: #1abc9c; /* Ocean Green text/icon */
+    border-color: #1abc9c; /* Ocean Green border */
+    background: #e8f8f5; /* Very faint green tint */
+  }
+  #side-menu-lock-btn:hover {
+    background: #1abc9c;
+    color: white;
+    box-shadow: 0 4px 12px rgba(26, 188, 156, 0.3);
+  }
+
+  /* 3. Group Title Edit Input */
+  .group-title-input {
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: 1px solid #1abc9c;
+    border-radius: 4px;
+    padding: 2px 4px;
+    width: 140px;
+    outline: none;
+    color: #333;
+  }
+
+  /* Header Branding */
+  header {
+    width: 100%;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  h1 {
+    color: var(--primary);
+    margin: 0;
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 0px rgba(255,255,255,0.8);
+  }
+  
+  .subtitle {
+    color: #666;
+    font-size: 1rem;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  /* Main Grid Layout */
+  .layout-grid {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 40px;
+    width: 100%;
+  }
+
+  /* --- LEFT COLUMN: Student Cards --- */
+  #card-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 380px);
+    justify-content: center;
+    gap: 20px;
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* --- RIGHT COLUMN: Dashboard Sidebar --- */
+  .sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Generic Widget Card */
+  .widget-card {
+    background: var(--glass-bg);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(255,255,255,0.6);
+    backdrop-filter: blur(10px);
+    transition: transform 0.2s ease;
+  }
+  .widget-card:hover {
+    transform: translateY(-3px);
+  }
+
+  /* 1. Date & Time Widget */
+  .clock-widget {
+    background: linear-gradient(135deg, #2e8b57, #3cb371);
+    color: white;
+    text-align: center;
+    padding: 16px;
+  }
+  .clock-time {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -1px;
+  }
+  .clock-date {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  /* 2. Timer Widget (New) */
+  .timer-widget {
+    background: #fff;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .timer-header {
+    display: flex;
+    flex-direction: column; 
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    align-items: center;
+  }
+  .timer-label-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap; 
+  }
+  .timer-input {
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: #333;
+    outline: none;
+    background: #f5f5f7;
+    cursor: pointer;
+    width: 100%; 
+    box-sizing: border-box; 
+    max-width: 100%;
+    text-align: center;
+    font-weight: 600;
+  }
+  .timer-input:focus { background: #e5e5ea; }
+  .timer-display {
+    font-size: 3.5rem;
+    font-weight: 200;
+    color: #333;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin: 8px 0;
+  }
+  .timer-status {
+    font-size: 0.85rem;
+    text-align: center;
+    color: #888;
+    height: 1.2rem;
+    font-weight: 500;
+  }
+  .timer-progress {
+    height: 12px;
+    background: #f0f0f0;
+    border-radius: 6px;
+    width: 100%;
+    margin-top: 5px;
+    overflow: hidden;
+  }
+  .timer-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f1c40f, #f39c12);
+    width: 0%;
+    transition: width 1s linear;
+    border-radius: 6px;
+  }
+  
+  .timer-controls-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .timer-control-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #f5f5f7;
+    color: #333;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  .timer-control-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    background: #fff;
+  }
+  .timer-control-btn:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+  .timer-control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .timer-control-btn.btn-play { background: #e8f5e9; color: #2e8b57; }
+  .timer-control-btn.btn-play:hover:not(:disabled) { background: #2e8b57; color: white; }
+  .timer-control-btn.btn-reset { background: #ffebee; color: #e53935; }
+  .timer-control-btn.btn-reset:hover:not(:disabled) { background: #e53935; color: white; }
+
+
+  /* 3. Profile Widget */
+  .profile-widget {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .profile-img-container {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #f0f7f4;
+    position: relative;
+    margin-bottom: 12px;
+    border: 4px solid #fff;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .upload-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    color: white;
+    font-size: 1.5rem;
+  }
+  .profile-img-container:hover .upload-overlay { opacity: 1; }
+
+  .profile-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2c3e50;
+    width: 100%;
+    border-radius: 4px;
+  }
+  .profile-class {
+    font-size: 0.95rem;
+    color: #7f8c8d;
+    font-weight: 500;
+    width: 100%;
+    border-radius: 4px;
+  }
+
+  /* 4. Quick Links Widget */
+  .links-header {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .links-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .link-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 12px;
+    text-decoration: none;
+    color: #444;
+    transition: all 0.2s;
+    cursor: pointer;
+    height: 80px;
+  }
+  .link-btn:hover {
+    background: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    border-color: #ddd;
+    transform: translateY(-1px);
+    color: var(--primary);
+  }
+  .link-icon { font-size: 1.8rem; margin-bottom: 6px; }
+  .link-label { 
+    font-size: 0.85rem; 
+    font-weight: 600; 
+    text-align: center;
+    width: 100%;
+    outline: none;
+  }
+  
+  /* 5. Daily Note Widget */
+  .agenda-widget {
+    background: #fff9c4; 
+    border: none;
+    transform: rotate(-1deg);
+  }
+  .agenda-widget:hover { transform: rotate(0deg) scale(1.02); }
+  .agenda-title {
+    font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
+    font-weight: bold;
+    color: #f39c12;
+    margin-bottom: 8px;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .agenda-content {
+    width: 100%;
+    min-height: 80px;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #555;
+    resize: none;
+  }
+
+  /* --- Group Builder Modal --- */
+  #group-builder-modal {
+    border: none;
+    border-radius: 20px;
+    padding: 0;
+    width: 95%;
+    max-width: 900px;
+    height: 85vh;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    background: #fff;
+    overflow: hidden;
+    flex-direction: column;
+  }
+  #group-builder-modal[open] {
+    display: flex;
+    animation: modalPop 0.3s ease-out;
+  }
+  #group-builder-modal::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+  }
+
+  .group-builder-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+  }
+  .group-builder-header h2 { margin: 0; font-size: 1.5rem; color: #333; }
+
+  .group-builder-toolbar {
+    padding: 16px 24px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .gb-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .gb-btn.primary { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.2); }
+  .gb-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(46, 204, 113, 0.3); }
+  .gb-btn.secondary { background: #fff; border: 1px solid #ddd; color: #555; }
+  .gb-btn.secondary:hover { background: #f0f0f0; border-color: #ccc; }
+
+  .gb-divider { width: 1px; height: 24px; background: #ddd; margin: 0 8px; }
+  .gb-label { font-weight: 600; color: #666; font-size: 0.9rem; }
+  .gb-input { width: 60px; padding: 6px; border-radius: 6px; border: 1px solid #ddd; text-align: center; font-weight: bold; }
+
+  .group-builder-workspace {
+    flex: 1;
+    display: flex;
+    background: #f0f2f5;
+    padding: 24px;
+    gap: 24px;
+    overflow: hidden;
+  }
+  .gb-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+  .gb-column:first-child { flex: 0 0 300px; } /* Ungrouped column width */
+  .gb-column:last-child { flex: 1; } /* Groups grid */
+
+  .gb-col-title {
+    margin: 0;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+    font-weight: 700;
+  }
+
+  .gb-drop-zone {
+    flex: 1;
+    border-radius: 12px;
+    padding: 16px;
+    transition: background 0.2s;
+    overflow-y: auto;
+  }
+  .gb-drop-zone.bench {
+    background: rgba(255,255,255,0.6);
+    border: 2px dashed rgba(0,0,0,0.1);
+  }
+  .gb-groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    overflow-y: auto;
+    padding-bottom: 20px;
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* --- Student Card Styles --- */
+   .gb-student-chip {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 99px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s;
+    margin: 4px;
+  }
+  .gb-student-chip:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  .gb-chip-emoji { font-size: 1.2rem; }
+  .gb-chip-name { font-weight: 600; color: #444; }
+  
+  .group-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100%;
+    min-height: 150px;
+    transition: all 0.2s;
+  }
+  .group-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+  
+  .group-card-header {
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+  }
+  .group-title { font-weight: 700; color: #333; font-size: 0.95rem; }
+  .group-delete-btn {
+    background: none; border: none; color: #ff6b6b; cursor: pointer;
+    font-size: 1.1rem; padding: 4px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .group-delete-btn:hover { background: #ffebee; }
+  
+  .group-card-body {
+    flex: 1;
+    padding: 12px;
+    background: #fafafa;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 8px;
+  }
+  
+  /* Context Menu for Moving */
+  .gb-move-menu {
+    position: fixed;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border: 1px solid #eee;
+    padding: 6px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    min-width: 140px;
+  }
+  .gb-move-item {
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #444;
+  }
+  .gb-move-item:hover { background: #f0f7f4; color: var(--primary); }
+
+  .student-card {
+    width: 380px;
+    max-width: var(--max-card-w);
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: visible;
+    transition: transform 0.2s ease;
+    animation: fadeSlideUp 0.4s ease-out forwards;
+    margin: 0 auto;
+  }
+  .student-card:hover { transform: translateY(-2px); }
+  
+  .student-card.last-active {
+    box-shadow: 0 12px 24px rgba(46, 204, 113, 0.25);
+    border: 2px solid var(--primary);
+    transform: translateY(-4px);
+    z-index: 5;
+  }
+
+  .student-card.is-absent {
+    filter: grayscale(1);
+    opacity: 0.6;
+  }
+  .student-card.is-absent .controls button {
+    pointer-events: none;
+  }
+
+  .card-menu {
+    position: relative;
+    z-index: 10;
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+  }
+  .card-menu-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.04);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0;
+  }
+  .card-menu-btn:hover,
+  .card-menu-btn:focus-visible {
+    background: rgba(0,0,0,0.08);
+    outline: none;
+  }
+  .card-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 180px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 6px 0;
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    z-index: 20;
+  }
+  .card-menu-dropdown.open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .card-menu-item {
+    width: 100%;
+    padding: 8px 14px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .card-menu-item:hover,
+  .card-menu-item:focus-visible {
+    background: #f0f7f4;
+    outline: none;
+  }
+  .card-menu-item.card-menu-remove {
+    color: #e74c3c;
+  }
+  
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .row { display: flex; justify-content: flex-start; align-items: center; margin-bottom: 12px; }
+  .student-name { font-weight: 800; font-size: 1.1rem; color: #333; display: flex; gap: 8px; align-items: center; flex: 1; pointer-events: none; }
+  .student-name > * { pointer-events: auto; }
+  
+  .name-edit {
+    display: inline-block;
+    outline: none;
+    border-bottom: 1px dashed transparent;
+    transition: all 0.2s;
+    cursor: text;
+    min-width: 40px;
+    padding: 0 2px;
+    border-radius: 4px;
+  }
+  .name-edit:hover {
+    border-bottom-color: rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.02);
+  }
+  .name-edit:focus {
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.4);
+    border-bottom-color: transparent;
+  }
+  .profile-name:hover, .profile-class:hover {
+    border-bottom-color: rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.02);
+  }
+  .profile-name:focus, .profile-class:focus {
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.4);
+    border-bottom-color: transparent;
+  }
+  
+  .counter {
+    background: #fff7e6; color: #b35f00; padding: 6px 12px; border-radius: 999px;
+    font-weight: 700; display: flex; gap: 6px; align-items: center;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.03); border: 1px solid rgba(255, 180, 0, 0.2);
+  }
+  .counter.is-debt {
+    background: #fff0f0;
+    color: #c0392b; /* Deep Red */
+    border-color: #e74c3c;
+  }
+  .stars-area {
+    height: var(--area-h); position: relative; border-radius: 12px;
+    background: linear-gradient(180deg, #fcfcfc, #fffdf6);
+    border: 2px dashed rgba(0, 0, 0, 0.06); margin-bottom: 16px;
+    overflow: hidden; box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);
+  }
+  .controls { display: flex; gap: 10px; }
+  button {
+    border: 0; padding: 10px 16px; border-radius: 10px; cursor: pointer;
+    font-weight: 700; font-size: 0.95rem; flex: 1;
+    transition: transform 0.1s, opacity 0.2s; display: flex;
+    align-items: center; justify-content: center; gap: 6px;
+  }
+  button:active { transform: scale(0.97); }
+  .add { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); }
+  .add:hover { background: #27ae60; }
+  .remove { background: #ff6b6b; color: white; box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3); }
+  .remove:hover { background: #ee5253; }
+  
+  /* Star Styles */
+  .star-el { position: absolute; width: 34px; height: 34px; pointer-events: none; transform-origin: center; user-select: none; }
+  .star-content { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #ffb400; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); transform: scale(1); }
+  @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.3); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+  .pop-anim { animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .layout-grid { flex-direction: column-reverse; align-items: center; }
+    .sidebar { width: 100%; max-width: 500px; position: static; margin-bottom: 30px; }
+  }
+
+  /* Collapsible Left Menu */
+  .side-menu-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1100;
+  }
+  .menu-toggle-btn {
+    background: #fff;
+    color: #333;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: auto;
+    height: 44px;
+    border-radius: 999px;
+    padding: 0 16px;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+  .menu-toggle-btn span {
+    display: inline-flex;
+    align-items: center;
+  }
+  .menu-toggle-btn:hover,
+  .menu-toggle-btn:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    outline: none;
+  }
+
+  .side-menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 1150;
+  }
+  .side-menu-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .side-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 425px;
+    max-width: 80vw;
+    background: var(--glass-bg);
+    box-shadow: 12px 0 30px rgba(0,0,0,0.18);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-out, width 0.3s ease-out;
+    z-index: 1200;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 18px 0;
+    backdrop-filter: blur(16px);
+    overflow-x: hidden;
+  }
+  .side-menu.open {
+    transform: translateX(0);
+  }
+
+  .side-menu.pinned {
+    box-shadow: 8px 0 24px rgba(0,0,0,0.12);
+  }
+
+  .side-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+  .side-menu-title {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--primary);
+    letter-spacing: -0.2px;
+  }
+  .side-menu-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .side-menu-close-btn,
+  .side-menu-pin-btn {
+    background: transparent;
+    border: none;
+    border-radius: 999px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #555;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+  .side-menu-close-btn:hover,
+  .side-menu-close-btn:focus-visible,
+  .side-menu-pin-btn:hover,
+  .side-menu-pin-btn:focus-visible {
+    background: rgba(0,0,0,0.04);
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  .side-menu-pin-btn {
+    color: #888;
+  }
+
+  .side-menu-pin-btn.pinned {
+    color: var(--primary);
+    background: rgba(46, 139, 87, 0.08);
+  }
+
+  .side-menu-section {
+    margin-top: 0;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .side-menu-footer {
+    padding: 16px 0;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    margin-top: auto; /* Pushes it to the bottom in a flex container */
+    flex-shrink: 0;   /* Prevents it from shrinking */
+    background: var(--glass-bg); /* Match background */
+    width: 100%;
+  }
+
+  .side-menu-item, .reset-all-stars-btn {
+    justify-content: flex-start; /* Force left align */
+    padding-left: 24px; /* Specific padding requested */
+    text-align: left;
+    width: 100%;
+    margin-bottom: 8px; /* Consistent spacing */
+  }
+  .side-menu-item span:first-child, .reset-all-stars-btn span:first-child {
+    margin-right: 12px; /* Space between icon and text */
+    width: 24px; /* Fixed width for icon alignment */
+    text-align: center;
+  }
+
+  .side-menu-item {
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 12px 16px;
+    padding-left: 24px;
+    border-radius: 12px;
+    color: #333;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .side-menu-item span:first-child {
+    font-size: 1.2rem;
+  }
+  .side-menu-item:hover,
+  .side-menu-item:focus-visible {
+    background: #fff;
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.15);
+    outline: none;
+  }
+
+  .side-menu > .side-menu-section,
+  .side-menu-main > .widget-card {
+    margin-top: 16px;
+  }
+
+  .side-menu-main {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 16px;
+    margin-right: -4px;
+    padding-right: 4px;
+  }
+  .side-menu-main::-webkit-scrollbar { width: 6px; }
+  .side-menu-main::-webkit-scrollbar-track { background: transparent; }
+  .side-menu-main::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+  .side-menu-main::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+  .side-menu,
+  .side-menu * {
+    box-sizing: border-box;
+  }
+
+  .side-menu-header,
+  .side-menu-main,
+  .menu-bottom-fixed,
+  .side-menu-section,
+  .side-menu .widget-card {
+    width: 100%;
+  }
+
+  .side-menu .side-menu-item,
+  .side-menu .widget-card,
+  .side-menu .agenda-content,
+  .side-menu .profile-name,
+  .side-menu .profile-class {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .menu-separator {
+    border: 0;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    margin: 12px 0 8px;
+  }
+
+  .reset-all-stars-btn {
+    width: 100%;
+    border-radius: 12px;
+    background: #fff;
+    color: #e74c3c;
+    font-weight: 600;
+    padding: 12px 16px;
+    border: 1px solid #ffebee;
+    cursor: pointer;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    transition: all 0.2s ease;
+  }
+  .reset-all-stars-btn span:first-child {
+      font-size: 1.2rem;
+  }
+
+  .reset-all-stars-btn:hover,
+  .reset-all-stars-btn:focus-visible {
+    background: #ffebee;
+    border-color: #ffcdd2;
+    outline: none;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.15);
+  }
+
+  /* --- 3D Gatekeeper (Phase 3 Upgrade) --- */
+  #gatekeeper-overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(255,255,255,0.2), rgba(0,0,0,0.55));
+    backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    z-index: 2147483647; /* Max Safe Integer */
+    perspective: 1000px; /* Essential for 3D effect */
+  }
+
+  #gatekeeper-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .gatekeeper-scene {
+    width: min(420px, 90vw);
+    height: 500px; /* Fixed height to accommodate both faces comfortably */
+    position: relative;
+    /* No perspective here, it's on the overlay */
+  }
+
+  #gatekeeper-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy flip */
+  }
+
+  #gatekeeper-card.is-flipped {
+    transform: rotateY(180deg);
+  }
+
+  .card-face {
+    position: absolute;
+    width: 100%;
+    height: auto; /* Let content dictate height, but centered? */
+    min-height: 400px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden; /* Safari fix */
+    
+    /* Inherit .welcome-card styles */
+    background: rgba(255,255,255,0.9);
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.22);
+    border: 1px solid rgba(255,255,255,0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .face-front {
+    transform: rotateY(0deg);
+    z-index: 2;
+  }
+
+  .face-back {
+    transform: rotateY(180deg);
+    z-index: 1;
+  }
+
+  /* Content Styling reuse */
+  .gate-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 16px;
+  }
+
+  .gate-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  
+  .gate-subtitle {
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .gate-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #eee;
+    border-radius: 12px;
+    font-size: 1.4rem;
+    text-align: center;
+    outline: none;
+    transition: all 0.2s;
+    letter-spacing: 6px;
+    font-family: monospace;
+    margin-bottom: 16px;
+    background: rgba(255,255,255,0.8);
+  }
+  .gate-input:focus { 
+    border-color: var(--primary); 
+    box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.1);
+  }
+
+  .gate-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+  }
+  .gate-btn:hover { background: #27ae60; transform: translateY(-1px); }
+  .gate-btn:active { transform: scale(0.98); }
+
+  .gate-error { 
+    color: #e74c3c; 
+    font-size: 0.9rem; 
+    min-height: 1.2em; 
+    margin-top: 8px; 
+    text-align: center;
+    font-weight: 600;
+  }
+
+  /* Back Face Specifics */
+  .setup-field {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .setup-label {
+    display: block;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7a8a82;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .setup-select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+    background: #fff;
+  }
+
+
+  body.menu-visible {
+    --max-card-w: 320px;
+  }
+
+  body.menu-overlay-open {
+    overflow: hidden;
+  }
+
+  body.menu-pinned #app-layout {
+    margin-left: 445px;
+  }
+
+  @media (max-width: 600px) {
+    .side-menu-toggle {
+      top: 16px;
+      left: 16px;
+    }
+    .menu-toggle-btn {
+      height: 40px;
+      padding: 0 12px;
+      font-size: 0.95rem;
+    }
+    .side-menu {
+      width: 80vw;
+    }
+    body.menu-pinned #app-layout {
+      margin-left: 0;
+    }
+  }
+  #class-tabs-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  #class-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .class-tab {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .class-tab:hover {
+    background: #f0f7f4;
+    color: var(--primary);
+  }
+  .class-tab.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+  }
+  #add-class-btn {
+    background: #fff;
+    border: 1px dashed #ccc;
+    color: #777;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  #add-class-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: #f0f7f4;
+  }
+  /* --- History Modal & Graphs --- */
+  #history-modal {
+    border: none;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    background: #fff;
+    overflow-y: auto;
+  }
+  #history-modal::backdrop {
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+  }
+  .history-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto; /* Title | Spacer | Controls */
+    align-items: center;
+    padding: 20px 30px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .history-header h2 { margin: 0; white-space: nowrap; margin-right: 20px; }
+
+  /* Leaderboard Toggle in Header */
+  .history-view-toggle {
+    display: flex;
+    background: #e0e0e0;
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .h-view-btn {
+    border: none;
+    background: transparent;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  .h-view-btn.active {
+    background: #fff;
+    color: #333;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .h-view-btn:hover:not(.active) {
+    background: rgba(255,255,255,0.5);
+  }
+
+  /* New container for controls to keep them tight */
+  .history-header-controls {
+    grid-column: 3;
+    display: flex;
+    align-items: center;
+    gap: 16px; /* Strict 16px gap between all buttons */
+  }
+  .close-modal-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #888;
+  }
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  /* Leaderboard Styles */
+  #leaderboard-view {
+    display: none; /* Hidden by default */
+    padding-top: 20px;
+  }
+  .leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .lb-card {
+    display: grid;
+    grid-template-columns: 40px 50px 1fr 100px 100px; /* Rank | Emoji | Name | Total | Avg */
+    align-items: center;
+    background: #fff;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+  .lb-rank { font-weight: 800; color: #999; font-size: 1.1rem; text-align: center; }
+  .lb-emoji { font-size: 1.5rem; text-align: center; }
+  .lb-name { font-weight: 600; color: #333; font-size: 1rem; }
+  .lb-stat { display: flex; flex-direction: column; align-items: center; }
+  .lb-val { font-weight: 700; color: var(--primary); font-size: 1.1rem; }
+  .lb-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  /* Top 3 Styling */
+  .lb-card.rank-1 { border: 2px solid #f1c40f; background: #fffcf2; box-shadow: 0 4px 12px rgba(241, 196, 15, 0.15); }
+  .lb-card.rank-1 .lb-rank { color: #f39c12; }
+  .lb-card.rank-2 { border: 2px solid #bdc3c7; background: #fdfdfd; }
+  .lb-card.rank-2 .lb-rank { color: #7f8c8d; }
+  .lb-card.rank-3 { border: 2px solid #e67e22; background: #fff8f0; }
+  .lb-card.rank-3 .lb-rank { color: #d35400; }
+
+  /* History Card Polish */
+  .history-entry { margin-bottom: 20px; transition: transform 0.2s; }
+  .history-entry:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+
+  .history-meta {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .history-reason {
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    background: #e8f5e9;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* Stats Badges */
+  .history-stats { display: flex; gap: 10px; margin-top: 8px; font-size: 0.85rem; color: #666; }
+  .stat-tag { background: #f0f2f5; padding: 2px 8px; border-radius: 4px; }
+
+  /* The Graph */
+  .history-graph {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 10px;
+    background: #fafafa;
+  }
+  .history-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+  }
+  .history-row.absent { opacity: 0.5; filter: grayscale(1); } /* Visual cue for absence: Grayed out */
+  .history-student-info {
+    width: 120px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .history-bar-container {
+    flex: 1;
+    background: #eee;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .history-bar-fill { height: 8px; border-radius: 4px; transition: width 1s ease-out; background: var(--accent); }
+  .history-count {
+    width: 30px;
+    text-align: right;
+    font-weight: 600;
+  }
+  .mvp-icon { font-size: 0.8rem; }
+  
+  .trend-icon { font-size: 0.8rem; margin-left: 4px; font-weight: bold; }
+  .trend-up { color: #2ecc71; }
+  .trend-down { color: #e74c3c; }
+
+  /* Action Buttons in Header */
+  .history-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .history-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .history-action-btn:hover { opacity: 1; }
+ 
+   /* Edit Mode Styles */
+   .edit-count-input {
+     width: 50px;
+     padding: 2px 4px;
+     border: 1px solid #ccc;
+     border-radius: 4px;
+     font-size: 0.9rem;
+   }
+   .edit-reason-input {
+     border: 1px solid #ccc;
+     padding: 2px 4px;
+     border-radius: 4px;
+     font-size: 0.8rem;
+     width: 150px;
+   }
+   .history-action-btn.save-btn {
+     color: var(--primary);
+     opacity: 1;
+   }
+
+   .history-entry {
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    background: #f9f9f9;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  }
+  .history-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .history-reason {
+    font-size: 0.8rem;
+    background: #e1f5fe;
+    color: #0288d1;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .history-graph {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .history-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .history-student-info {
+    width: 100px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .history-bar-container {
+    flex: 1;
+    height: 12px;
+    background: #eee;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .history-bar-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 6px;
+    transition: width 0.5s ease;
+  }
+  .history-count {
+    width: 30px;
+    text-align: right;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  .mvp-icon {
+    font-size: 1rem;
+    margin-left: 4px;
+  }
+
+  /* --- Toast Notification --- */
+  #toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 2147483647; /* Max Safe Integer to stay on top of modals */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none; /* Allow clicking through container area */
+  }
+  .toast {
+    background: #333;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    animation: slideIn 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: auto; /* Re-enable events on toasts themselves */
+  }
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* --- Context Menus --- */
+  .gb-move-menu {
+    position: fixed;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border: 1px solid #eee;
+    padding: 6px;
+    z-index: 2147483647; /* Ensure context menus are top-most */
+    display: flex;
+    flex-direction: column;
+    min-width: 140px;
+  }
+  .gb-move-item {
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #444;
+  }
+  .gb-move-item:hover { background: #f0f7f4; color: var(--primary); }
+
+
+  /* --- View Toggle (Segmented Control) --- */
+  .view-toggle {
+    display: flex;
+    background: #e0e0e0;
+    border-radius: 8px;
+    padding: 4px;
+    gap: 4px;
+    margin-left: 20px;
+  }
+  .view-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  .view-btn.active {
+    background: #fff;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .view-btn:hover:not(.active) {
+    background: rgba(255,255,255,0.5);
+  }
+
+  /* --- Group Pods (Grid View) --- */
+  .group-pods-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    width: 100%;
+    padding: 20px;
+  }
+  .group-pod {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: transform 0.2s;
+  }
+  .group-pod:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
+  .group-pod-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 12px;
+  }
+  .group-pod-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .group-color-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+  }
+  .group-pod-controls {
+    display: flex;
+    gap: 8px;
+  }
+  .group-action-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .group-action-btn:hover { opacity: 0.9; }
+  .group-members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .group-member-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f9f9f9;
+    border-radius: 8px;
+  }
+  .member-info { font-weight: 500; color: #444; display: flex; align-items: center; gap: 8px; }
+  .member-stars { font-size: 0.9rem; color: #666; font-weight: bold; }
+
+  /* --- Drag & Drop Import Visuals --- */
+  .drag-active {
+    position: relative;
+  }
+  .drag-active::after {
+    content: "📂 Drop Class File to Import";
+    position: fixed;
+    inset: 0;
+    background: rgba(46, 204, 113, 0.9);
+    color: white;
+    font-size: 2rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    backdrop-filter: blur(5px);
+    border: 8px dashed white;
+    margin: 20px;
+    border-radius: 20px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+  }
+
+  /* --- Ledger Modal (Phase 1 & Visual Polish) --- */
+  #ledger-modal {
+    border: none;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 650px;
+    max-height: 70vh;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    background: #fff;
+    overflow-y: auto;
+  }
+  #ledger-modal::backdrop {
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+  }
+  
+  /* Modal Header Grid Layout */
+  .ledger-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    position: sticky; top: 0; background: #fff; z-index: 10;
+  }
+  .ledger-header h2 { margin: 0; color: #333; font-size: 1.4rem; }
+  .close-ledger-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #888;
+    line-height: 1;
+    padding: 4px;
+    border-radius: 50%;
+    transition: background 0.2s;
+  }
+  .close-ledger-btn:hover { background: #f0f0f0; color: #555; }
+  
+  .ledger-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  /* Ledger Row - Data Table Look */
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 80px 60px 1fr auto; /* Time | Badge | Name | Action */
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid #eee; /* Clean border instead of fill */
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+  .ledger-row:hover { 
+    background: #fafafa; 
+    transform: translateX(2px);
+    border-color: #ddd;
+  }
+  .ledger-row.reverted {
+    opacity: 0.5;
+    background: #f9f9f9;
+    text-decoration: line-through;
+    pointer-events: none;
+  }
+  
+  .tx-time { 
+    color: #999; 
+    font-size: 0.85rem; 
+    font-family: monospace; /* Monospace for alignment */
+  }
+  
+  /* Badges */
+  .ledger-badge {
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 99px;
+    text-align: center;
+    width: fit-content;
+    justify-self: center;
+  }
+  .ledger-badge.add { 
+    background: #e8f5e9; 
+    color: #27ae60; 
+  }
+  .ledger-badge.remove { 
+    background: #ffebee; 
+    color: #c0392b; 
+  }
+  
+  .tx-name { 
+    font-weight: 600; 
+    color: #444; 
+    padding-left: 12px;
+  }
+  
+  .tx-undo-btn {
+    background: transparent;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: #666;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .tx-undo-btn:hover:not(:disabled) {
+    background: #fff;
+    border-color: #e74c3c;
+    color: #e74c3c;
+    box-shadow: 0 2px 5px rgba(231, 76, 60, 0.1);
+  }
+  .tx-undo-btn:disabled {
+    cursor: default;
+    color: #bbb;
+    border-color: #eee;
+    background: #f9f9f9;
+  }
+
+  /* --- Lock Screen (Phase 2) --- */
+  #lock-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647; /* Max Safe Integer */
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s;
+  }
+  #lock-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .lock-card {
+    background: #fff;
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    text-align: center;
+    width: 90%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+  .lock-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .lock-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+  }
+  .lock-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #eee;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 4px;
+  }
+  .lock-input:focus { border-color: var(--primary); }
+  .lock-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .lock-btn:active { transform: scale(0.98); }
+  .lock-error { color: #e74c3c; font-size: 0.9rem; min-height: 1.2em; }
+
+/* --- Random Picker Mode --- */
+.picker-layout {
+    display: flex;
+    gap: 28px;
+    width: 100%;
+    max-width: 980px;
+    min-height: 400px;
+    animation: fadeSlideUp 0.3s ease-out;
+    align-items: stretch;
+}
+.picker-stage {
+    flex: 1.5;
+    background: #fff;
+    border-radius: 24px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    text-align: center;
+}
+.picker-display {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin: 30px 0;
+    color: #2c3e50;
+    width: 100%;
+    min-height: 1.2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    word-break: break-word;
+}
+.picker-emoji-lg { font-size: 5rem; display: block; margin-bottom: 10px; }
+
+.picker-btn-main {
+    background: var(--accent);
+    color: #b35f00;
+    border: none;
+    padding: 16px 40px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    border-radius: 99px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(241, 196, 15, 0.4);
+    transition: transform 0.1s, box-shadow 0.2s;
+    margin-top: 20px;
+}
+.picker-btn-main:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(241, 196, 15, 0.5); }
+.picker-btn-main:active { transform: scale(0.96); }
+.picker-btn-main:disabled { background: #eee; color: #999; box-shadow: none; cursor: not-allowed; transform: none; }
+
+.picker-history-col {
+    flex: 1;
+    background: rgba(255,255,255,0.6);
+    border-radius: 24px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    border: 2px dashed rgba(0,0,0,0.05);
+    max-height: 500px;
+    overflow-y: auto;
+}
+.picker-h-header {
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+}
+.picker-item {
+    background: #fff;
+    padding: 10px 14px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.picker-item-name { font-weight: 600; color: #444; display: flex; gap: 8px; align-items: center; }
+.picker-item-controls { display: flex; gap: 4px; }
+.picker-mini-btn {
+    width: 28px; height: 28px; border-radius: 6px; border: 1px solid #eee;
+    background: #f9f9f9; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+}
+.picker-mini-btn:hover { background: #fff; border-color: #ddd; }
+.picker-mini-btn.p-add { color: var(--primary); }
+.picker-mini-btn.p-rem { color: #e74c3c; }
+@media (max-width: 980px) {
+  .picker-layout {
+    flex-direction: column;
+    max-width: 760px;
+    gap: 18px;
+  }
+  .picker-stage,
+  .picker-history-col {
+    width: 100%;
+  }
+}
+@media (max-width: 760px) {
+  .picker-name-shell {
+    min-height: 184px;
+    padding: 18px 18px 18px 18px;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .picker-btn-main {
+    position: static;
+    transform: none;
+    width: 168px;
+    min-width: 168px;
+    max-width: 168px;
+  }
+  .picker-btn-main:hover { transform: translateY(-2px); }
+  .picker-btn-main:active { transform: scale(0.96); }
+  .picker-btn-main:disabled { transform: none; }
+  .picker-name-text {
+    font-size: 42px;
+  }
+}
+  </style>
+   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body class="welcome-active">
+  <!-- 3D Gatekeeper Overlay -->
+  <div
+    id="gatekeeper-overlay"
+    class="visible"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="gate-title-front"
+  >
+    <div class="gatekeeper-scene">
+      <div id="gatekeeper-card">
+        
+        <!-- SIDE A: Security Gate (Lock Screen Logic) -->
+        <div class="card-face face-front">
+          <img id="gate-avatar" class="gate-avatar" src="" alt="User">
+          <h2 id="gate-title-front" class="gate-title">Security Gate</h2>
+          <div class="gate-subtitle">Enter PIN to access dashboard</div>
+          
+          <input type="password" id="gate-pin-input" class="gate-input" placeholder="PIN" maxlength="4" pattern="[0-9]*" inputmode="numeric">
+          <button id="gate-unlock-btn" class="gate-btn" onclick="attemptUnlock()">Unlock Dashboard</button>
+          <div id="gate-error-front" class="gate-error" aria-live="polite"></div>
+        </div>
+
+        <!-- SIDE B: Session Setup (Welcome Logic) -->
+        <div class="card-face face-back">
+          <h2 id="gate-title-back" class="gate-title">Good Morning</h2>
+          <div id="gate-subtitle-back" class="gate-subtitle">Let’s get your class set up.</div>
+          
+          <label class="setup-field">
+            <span class="setup-label">Session Duration</span>
+            <select id="gate-duration-select" class="setup-select"></select>
+          </label>
+          
+          <button id="gate-start-btn" class="gate-btn" onclick="startSession()">Start Class</button>
+          <div id="gate-error-back" class="gate-error" aria-live="polite"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="side-menu-toggle">
+    <button
+      id="menu-toggle-btn"
+      class="menu-toggle-btn"
+      type="button"
+      aria-label="Open main menu"
+      aria-expanded="false"
+      aria-controls="side-menu"
+    >
+      <span>☰</span>
+      <span>Menu</span>
+    </button>
+  </div>
+
+  <div id="side-menu-overlay" class="side-menu-overlay" aria-hidden="true"></div>
+
+  <aside
+    id="side-menu"
+    class="side-menu"
+    role="navigation"
+    aria-label="Main menu"
+    aria-hidden="true"
+  >
+    <div class="side-menu-header">
+      <div class="side-menu-title">Classroom Menu</div>
+      <div class="side-menu-controls">
+        <button
+          id="side-menu-pin-btn"
+          class="side-menu-pin-btn"
+          type="button"
+          aria-label="Pin main menu"
+          aria-pressed="false"
+        >
+          📌
+        </button>
+        <button
+          id="side-menu-close-btn"
+          class="side-menu-close-btn"
+          type="button"
+          aria-label="Close main menu"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <div class="side-menu-main" aria-label="Menu content">
+      <hr class="menu-separator">
+
+      <div class="widget-card profile-widget">
+        <label for="profile-upload" class="profile-img-container" title="Click to upload photo">
+          <img id="profile-img" class="profile-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23e0e0e0'/%3E%3Cpath d='M50 20a20 20 0 1 1 0 40 20 20 0 0 1 0-40zm0 45c-20 0-35 10-35 25v5h70v-5c0-15-15-25-35-25z' fill='%23b0b0b0'/%3E%3C/svg%3E" alt="Teacher Profile">
+          <div class="upload-overlay"><span>📷</span></div>
+          <input type="file" id="profile-upload" accept="image/*" style="display:none" onchange="loadProfileImage(event)">
+        </label>
+
+        <div class="profile-name" contenteditable="true" spellcheck="false" onkeydown="blurOnEnter(event)">Ms. Johnson</div>
+        <div class="profile-class" contenteditable="true" spellcheck="false" onkeydown="blurOnEnter(event)">Grade 2 - Sunshine Class</div>
+      </div>
+
+      <div class="widget-card timer-widget">
+        <div class="timer-header">
+          <div class="timer-label-row">
+              <span>⏳</span>
+              <span>Duration</span>
+          </div>
+          <select id="duration-select" class="timer-input" onchange="startDurationTimer()" title="Select your class duration to start the timer">
+            <option value="">Select Duration</option>
+            <option value="35">35 Minutes</option>
+            <option value="90">90 Minutes (No Break Alarm)</option>
+            <option value="90_split">90 Minutes (With Break Alarm)</option>
+          </select>
+        </div>
+        <div class="timer-display" id="timer-display">--:--:--</div>
+        
+        <div class="timer-controls-row">
+          <button id="minus-btn" class="timer-control-btn" onclick="adjustTime(-30)" disabled title="-30s">-30</button>
+          <button id="pause-btn" class="timer-control-btn btn-play" onclick="togglePause()" disabled title="Pause/Resume">⏸️</button>
+          <button id="plus-btn" class="timer-control-btn" onclick="adjustTime(30)" disabled title="+30s">+30</button>
+          <button id="reset-btn" class="timer-control-btn btn-reset" onclick="resetTimer()" disabled title="Reset">🔄</button>
+        </div>
+
+        <div class="timer-status" id="timer-status">Select duration to begin</div>
+        <div class="timer-progress">
+          <div class="timer-progress-fill" id="timer-fill"></div>
+        </div>
+      </div>
+
+      <div class="side-menu-section" aria-label="Primary actions">
+        <button
+          class="side-menu-item"
+          type="button"
+          data-menu-action="add-student"
+        >
+          <span>➕</span>
+          <span>Add Student</span>
+        </button>
+        <button
+          class="side-menu-item"
+          type="button"
+          onclick="openGroupBuilder()"
+        >
+          <span>👥</span>
+          <span>Group Builder</span>
+        </button>
+        <button
+          class="side-menu-item"
+          type="button"
+          onclick="archiveSession('Manual Save')"
+        >
+          <span>💾</span> 
+          <span>Save Session Snapshot</span> 
+        </button>
+        <button
+          id="side-menu-history-btn"
+          class="side-menu-item"
+          type="button"
+          onclick="openHistoryModal()"
+        >
+          <span>📜</span>
+          <span>Session History</span>
+        </button>
+        <button
+          id="reset-all-stars-btn"
+          class="reset-all-stars-btn"
+          type="button"
+          aria-label="Reset all stars for all students"
+          onclick="resetAllStars()"
+        >
+          <span>🔁</span>
+          <span>Reset All Stars</span>
+        </button>
+      </div>
+
+      <div class="widget-card">
+        <div class="links-header"><span>🚀</span> Portals</div>
+        <div class="links-grid">
+          <!-- 1. Google Timer -->
+          <a href="https://www.google.com/search?q=timer+&sca_esv=6125c3d1919d1932&sxsrf=ANbL-n6Gw9wS7aPseIXEFfkVVjsm69fK6A%3A1769316318816&source=hp&ei=3p91aZisL9eJvr0P0o_WIA&iflsig=AFdpzrgAAAAAaXWt7jzei6GbHwmvpE7GKZHrFqXREeE4&ved=0ahUKEwiYk7T18KWSAxXXhK8BHdKHFQQQ4dUDCBg&uact=5&oq=timer+&gs_lp=Egdnd3Mtd2l6IgZ0aW1lciAyCBAAGIAEGMsBMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBSLwNUABYnQZwAHgAkAEAmAFjoAG5BKoBATa4AQPIAQD4AQGYAgagAucEwgIMECMYgAQYExgnGIoFwgIHEAAYgAQYE5gDAJIHAzMuM6AHqiCyBwMzLjO4B-cEwgcFMi00LjLIByGACAA&sclient=gws-wiz" target="_blank" class="link-btn">
+            <span class="link-icon">⏳</span>
+            <span class="link-label">Timer</span>
+          </a>
+          <!-- 2. Login -->
+          <a href="https://www.teacherportals.com/authentication/login" target="_blank" class="link-btn">
+            <span class="link-icon">🔐</span>
+            <span class="link-label">LMS</span>
+          </a>
+          <!-- 3. Existing Calendar -->
+          <a href="https://docs.google.com/spreadsheets/d/1Vvmt0WzU3_--VheDAacS23lNRzPKECpPi9AU5hRsuuo/edit?gid=429926368#gid=429926368" target="_blank" class="link-btn">
+            <span class="link-icon">📅</span>
+            <span class="link-label">Schedule</span>
+          </a>
+          <!-- 4. Books -->
+          <a href="https://www.youtube.com/" target="_blank" class="link-btn">
+            <span class="link-icon">📺</span>
+            <span class="link-label">Youtube</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="widget-card agenda-widget">
+        <div class="agenda-title">
+          <span>📝 Daily Focus</span>
+          <span>📌</span>
+        </div>
+        <textarea class="agenda-content" placeholder="Type today's announcements, homework, or quote here..."></textarea>
+      </div>
+    </div>
+
+    <div class="side-menu-footer" id="side-menu-footer"></div>
+  </aside>
+
+  <div id="app-layout">
+    <header>
+      <h1>🌱 Classroom Dashboard</h1>
+      <div class="subtitle">Welcome to your daily command center</div>
+    </header>
+
+    <div id="class-tabs-container">
+      <div id="class-tabs"></div>
+      <button id="add-class-btn" title="Add New Class">+</button>
+
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button id="view-btn-ind" class="view-btn active" onclick="switchView('individual')">👤 Students</button>
+        <button id="view-btn-grp" class="view-btn" onclick="switchView('group')">👥 Groups</button>
+        <button id="view-btn-pkr" class="view-btn" onclick="switchView('picker')">🎲 Picker</button>
+      </div>
+    </div>
+
+    <div class="layout-grid">
+      <!-- Left Column: Student Cards -->
+      <div id="card-list">
+        <!-- Default Students -->
+        <div class="student-card" data-student="Paul">
+          <div class="row">
+            <div class="student-name">
+              <span class="name-edit" contenteditable="true" spellcheck="false" onkeydown="blurOnEnter(event)">Paul</span> 
+              <span style="font-size:1.4em">🦁</span>
+            </div>
+            <div class="counter" aria-live="polite"><span class="count">12</span> <span>⭐</span></div>
+          </div>
+          <div class="stars-area"></div>
+          <div class="controls">
+            <button class="add" onclick="addStarFor(this)">+ Add</button>
+            <button class="remove" onclick="removeStarFor(this)">- Remove</button>
+          </div>
+        </div>
+
+        <div class="student-card" data-student="Filex">
+          <div class="row">
+            <div class="student-name">
+              <span class="name-edit" contenteditable="true" spellcheck="false" onkeydown="blurOnEnter(event)">Filex</span> 
+              <span style="font-size:1.4em">🐱</span>
+            </div>
+            <div class="counter" aria-live="polite"><span class="count">8</span> <span>⭐</span></div>
+          </div>
+          <div class="stars-area"></div>
+          <div class="controls">
+            <button class="add" onclick="addStarFor(this)">+ Add</button>
+            <button class="remove" onclick="removeStarFor(this)">- Remove</button>
+          </div>
+        </div>
+
+        <div class="student-card" data-student="Mickey">
+          <div class="row">
+            <div class="student-name">
+              <span class="name-edit" contenteditable="true" spellcheck="false" onkeydown="blurOnEnter(event)">Mickey</span> 
+              <span style="font-size:1.4em">🐭</span>
+            </div>
+            <div class="counter" aria-live="polite"><span class="count">25</span> <span>⭐</span></div>
+          </div>
+          <div class="stars-area"></div>
+          <div class="controls">
+            <button class="add" onclick="addStarFor(this)">+ Add</button>
+            <button class="remove" onclick="removeStarFor(this)">- Remove</button>
+          </div>
+        </div>
+
+        <div class="student-card" data-student="Jullia">
+          <div class="row">
+            <div class="student-name">
+              <span class="name-edit" contenteditable="true" spellcheck="false" onkeydown="blurOnEnter(event)">Jullia</span> 
+              <span style="font-size:1.4em">🌸</span>
+            </div>
+            <div class="counter" aria-live="polite"><span class="count">5</span> <span>⭐</span></div>
+          </div>
+          <div class="stars-area"></div>
+          <div class="controls">
+            <button class="add" onclick="addStarFor(this)">+ Add</button>
+            <button class="remove" onclick="removeStarFor(this)">- Remove</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <dialog id="history-modal">
+    <div class="history-header">
+      <h2>Session History</h2>
+      
+      <!-- Leaderboard Toggle -->
+      <div class="history-view-toggle">
+        <button id="h-btn-sessions" class="h-view-btn active" onclick="switchHistoryView('sessions')">🕒 Sessions</button>
+        <button id="h-btn-leaderboard" class="h-view-btn" onclick="switchHistoryView('leaderboard')">🏆 Leaderboard</button>
+      </div>
+
+      <div class="history-header-controls">
+        <button onclick="addManualSession()" style="border:1px solid #ddd; background:#f9f9f9; cursor:pointer; padding:6px 12px; border-radius:8px; font-weight:600; color:#555;" title="Add Past Session">➕ Add Past</button>
+        <select id="history-filter" style="padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.9rem; background:#fff;">
+          <option value="all">All Classes</option>
+        </select>
+        <button class="close-modal-btn" onclick="closeHistoryModal()" style="font-size: 1.5rem; line-height: 1; margin-left: 8px;">×</button>
+      </div>
+    </div>
+    
+    <!-- Views -->
+    <div class="history-list" id="history-list">
+      <!-- Populated by JS -->
+    </div>
+    
+    <div id="leaderboard-view">
+        <div class="leaderboard-list" id="leaderboard-list">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+  </dialog>
+
+  <!-- Group Builder Modal -->
+  <dialog id="group-builder-modal">
+    <div class="group-builder-header">
+      <h2>Group Builder</h2>
+      <button class="close-modal-btn" onclick="closeGroupBuilder()">×</button>
+    </div>
+    
+    <div class="group-builder-toolbar">
+      <button class="gb-btn primary" onclick="addGroup()">➕ Add Group</button>
+      <div class="gb-divider"></div>
+      <span class="gb-label">Randomize:</span>
+      <input type="number" id="group-count-input" class="gb-input" value="4" min="2" max="10">
+      <button class="gb-btn secondary" onclick="randomizeGroups()">🔀 Go</button>
+    </div>
+
+    <div class="group-builder-workspace">
+      <!-- Left: Bench (Ungrouped) -->
+      <div class="gb-column">
+        <h3 class="gb-col-title">Ungrouped Students</h3>
+        <div id="ungrouped-zone" class="gb-drop-zone bench">
+          <!-- Students will be rendered here -->
+        </div>
+      </div>
+
+      <!-- Right: Groups -->
+      <div class="gb-column">
+        <h3 class="gb-col-title">Groups</h3>
+        <div id="groups-zone" class="gb-groups-grid">
+          <!-- Group cards will be rendered here -->
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Ledger Modal -->
+  <dialog id="ledger-modal">
+    <div class="ledger-header">
+      <h2>📋 Transaction Ledger</h2>
+      <button class="close-ledger-btn" onclick="closeLedgerModal()">×</button>
+    </div>
+    <div class="ledger-list" id="ledger-list">
+      <!-- Populated by JS -->
+    </div>
+  </dialog>
+
+<script>
+/* ========================================= */
+/* REGION: GLOBAL STATE & CONFIG       */
+/* ========================================= */
+
+/**
+ * Key used for localStorage persistence.
+ * @type {string}
+ */
+const STORAGE_KEY = 'classroomDashboardState_v1';
+
+/**
+ * Maximum number of transactions to keep in the ledger.
+ * @type {number}
+ */
+const MAX_LEDGER_SIZE = 500;
+
+/**
+ * Index of the currently active class in the classesData array.
+ * @type {number}
+ */
+let currentClassIndex = 0;
+
+/**
+ * Current Application State (Transient UI state).
+ * @type {Object}
+ */
+let pickerState = {
+    pool: [], // IDs/Names of students yet to be picked
+    history: [], // Students already picked
+    isSpinning: false
+};
+
+let currentAppState = {
+  viewMode: 'individual', // 'individual' or 'group'
+  ledger: [] // Transaction Log
+};
+
+/**
+ * Array holding all class objects.
+ * @type {Array<Object>}
+ */
+let classesData = [];
+
+/**
+ * Array holding historical session snapshots.
+ * @type {Array<Object>}
+ */
+let historyData = [];
+
+/**
+ * Interval ID for the active timer.
+ * @type {number|null}
+ */
+let timerInterval = null;
+
+/**
+ * Global state object for the countdown timer.
+ * @type {Object}
+ */
+let timerState = {
+  active: false,
+  paused: false,
+  startTime: 0,    // Time when timer started (performance.now())
+  pausedAt: 0,     // Time when paused
+  totalPaused: 0,  // Total duration paused
+  duration: 0,     // Total duration in ms
+  config: null,    // Current configuration
+  sessionArchived: false,
+  sessionAutoExported: false
+};
+
+/**
+ * Timestamp when the current session (timer) started.
+ * Used for calculating precise session duration for history.
+ * @type {number}
+ */
+let sessionStartTime = 0;
+
+/**
+ * Configuration map for different timer durations.
+ * @type {Object}
+ */
+const DURATION_CONFIG = {
+  '35': {
+    minutes: 35,
+    label: '35 Minutes',
+    breaks: []
+  },
+  '90_split': {
+    minutes: 90,
+    label: '90 Minutes (With Break Alarm)',
+    breaks: [
+      { start: 45, duration: 5 } // Start at 45m, lasts 5m
+    ]
+  },
+  '90': {
+    minutes: 90,
+    label: '90 Minutes (No Break Alarm)',
+    breaks: []
+  }
+};
+
+/**
+ * Currently open card menu state.
+ * @type {Object|null}
+ */
+let openCardMenu = null;
+
+/**
+ * Physics configuration constants.
+ */
+const STAR_PX = 34;
+const GRAVITY = 1200;
+const RESTITUTION = 0.3;
+const FRICTION = 0.92;
+const SUBSTEPS = 8;
+
+/**
+ * Map storing physics simulations for each student card.
+ * @type {Map<HTMLElement, PileSim>}
+ */
+const sims = new Map();
+
+/**
+ * Pool of emojis for new students.
+ * @type {Array<string>}
+ */
+const emojiPool = [
+  '🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🐣','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦟','🦗','🕷','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🦈','🐊','🐅','🐆','🦓','🦍','🦧','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🦬','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🦙','🐐','🦌','🐕','🐩','🦮','🐕‍🦺','🐈','🐈‍⬛','🐓','🦃','🦚','🦜','🦢','🦩','🕊','🐇','🦝','🦨','🦡','🦦','🦥','🐁','🐀','🐿','🦔'
+];
+
+/* ========================================= */
+/* REGION: UTILITIES & HELPERS         */
+/* ========================================= */
+
+/**
+ * SoundManager - Handles all audio feedback.
+ * Uses the Web Audio API for synthesized tones.
+ * @namespace
+ */
+const SoundManager = {
+  ctx: null,
+
+  /**
+   * Initializes the AudioContext if not already created.
+   * Why: Browsers require user interaction before AudioContext can run. We call this lazily.
+   */
+  init() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // BROWSER POLICY: Resume context if suspended (requires user interaction)
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  },
+
+  /**
+   * Plays a synthesized tone.
+   * @param {number} freq - Frequency in Hz.
+   * @param {string} type - Oscillator type (sine, square, etc.).
+   * @param {number} duration - Duration in seconds.
+   */
+  playTone(freq, type, duration) {
+    if (!this.ctx) this.init();
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+    // AUDIO ENGINEERING: Ramp down gain to avoid clicking sounds at the end of the tone.
+    // Sudden amplitude changes cause audible artifacts.
+    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start();
+    osc.stop(this.ctx.currentTime + duration);
+  },
+
+  /**
+   * Plays a double beep for break start.
+   */
+  playBreakStart() {
+    this.playTone(880, 'sine', 0.1);
+    setTimeout(() => this.playTone(880, 'sine', 0.1), 150);
+  },
+
+  /**
+   * Plays a longer low beep for break end.
+   */
+  playBreakEnd() {
+    this.playTone(440, 'square', 0.6);
+  },
+
+  /**
+   * Plays a victory-style fanfare for session end.
+   */
+  playSessionEnd() {
+    // MELODY: C5 -> E5 -> G5 (Major Triad)
+    this.playTone(523.25, 'sine', 0.2); // C5
+    setTimeout(() => this.playTone(659.25, 'sine', 0.2), 200); // E5
+    setTimeout(() => this.playTone(783.99, 'sine', 0.4), 400); // G5
+  }
+};
+
+/**
+ * Displays a temporary toast notification.
+ * @param {string} message - The message to display.
+ */
+function showToast(message) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<span>💾</span> <span>${message}</span>`;
+
+  // LAYER CHECK: If a top-layer modal is open, we need to ensure visibility.
+  // Native dialogs in modal mode sit in the Top Layer. Elements in body (even with max z-index)
+  // might be obscured depending on browser implementation.
+  
+  const openDialog = document.querySelector('dialog[open]');
+  if (openDialog) {
+     // ACTION: Append toast directly to the dialog so it shares the top layer context.
+     // This ensures the toast is visible above the backdrop.
+     // We create a temporary container inside the dialog if it doesn't exist, 
+     // or just append the toast element. 
+     // To keep styling consistent, we'll append the toast element itself and ensure it has fixed positioning relative to viewport.
+     // But wait, 'toast' class is fixed position bottom right? No, container is.
+     // Toast is static inside container.
+     
+     // STRATEGY: Append the toast element to the dialog, but force fixed positioning on THIS specific toast instance
+     // to match the visual location of the main container.
+     toast.style.position = 'fixed';
+     toast.style.bottom = '24px';
+     toast.style.right = '24px';
+     toast.style.zIndex = '2147483647';
+     openDialog.appendChild(toast);
+  } else {
+     container.appendChild(toast);
+  }
+
+  // ANIMATION LOGIC: We wait 3 seconds, then fade out (opacity 0), then remove from DOM.
+  // The nested timeouts ensure the CSS transition completes before element removal.
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      if (toast.parentElement) toast.parentElement.removeChild(toast);
+    }, 300);
+  }, 3000);
+}
+
+/**
+ * Selects a random emoji that isn't currently used by any student.
+ * @returns {string} - A unique emoji.
+ */
+function getUniqueEmoji() {
+  // LOGIC: Scrape the DOM to find currently used emojis.
+  // This avoids the need to maintain a separate "used" list in state.
+  const usedEmojis = Array.from(document.querySelectorAll('.student-name span[style*="font-size"]'))
+    .map(el => el.textContent.trim());
+
+  const available = emojiPool.filter(e => !usedEmojis.includes(e));
+
+  if (available.length > 0) {
+    return available[Math.floor(Math.random() * available.length)];
+  }
+  // FALLBACK: If all emojis are used, we must reuse one to prevent crashing.
+  return emojiPool[Math.floor(Math.random() * emojiPool.length)];
+}
+
+/**
+ * Ensures all student cards are structurally inside the card list container.
+ * Why: Drag-and-drop libraries or DOM manipulations might detach elements.
+ * This function acts as a sanitizer to restore the DOM hierarchy.
+ */
+function normalizeCardLayout() {
+  const cardList = document.getElementById('card-list');
+  if (!cardList) return;
+  document.querySelectorAll('.student-card').forEach(card => {
+    if (card.parentElement !== cardList) {
+      cardList.appendChild(card);
+    }
+  });
+}
+
+/* ========================================= */
+/* REGION: DATA PERSISTENCE LAYER      */
+/* ========================================= */
+
+/**
+ * Scrapes the current DOM state and saves it to localStorage.
+ * This is our "Source of Truth" synchronization.
+ */
+/**
+ * Saves state to LocalStorage.
+ * @param {boolean} skipDomScrape - If true, relies on memory only and ignores the DOM.
+ */
+function saveData(skipDomScrape = false) {
+  try {
+    if (!window.localStorage) return;
+  } catch (e) {
+    return;
+  }
+
+  const profileNameEl = document.querySelector('.profile-name');
+  const profileClassEl = document.querySelector('.profile-class');
+  const profileImgEl = document.getElementById('profile-img');
+  const agendaEl = document.querySelector('.agenda-content');
+  const portalLabels = Array.from(document.querySelectorAll('.links-grid .link-label')).map(el => el.textContent || '');
+
+  // CONTEXT-AWARE SCRAPING
+  let students = [];
+  
+  // LOGIC CHANGE: Only scrape if we are NOT skipping AND in individual view
+  if (!skipDomScrape && currentAppState.viewMode === 'individual') {
+      const activeStudents = classesData[currentClassIndex] ? classesData[currentClassIndex].students : [];
+      
+      students = Array.from(document.querySelectorAll('#card-list .student-card')).map((card, index) => {
+        const nameEl = card.querySelector('.name-edit');
+        const emojiEl = card.querySelector('.student-name span[style*="font-size"]');
+        const countEl = card.querySelector('.count');
+        
+        const name = nameEl ? nameEl.textContent || '' : '';
+        const emoji = emojiEl ? emojiEl.textContent || '' : '';
+        
+        // Attempt to find original student object to preserve hidden state (groupId)
+        const existingObj = activeStudents.find(s => s.name === name && s.emoji === emoji);
+        const groupId = existingObj ? existingObj.groupId : null;
+
+        return {
+          name: name,
+          emoji: emoji,
+          count: countEl ? parseInt(countEl.textContent, 10) || 0 : 0,
+          isAbsent: card.classList.contains('is-absent'),
+          groupId: groupId
+        };
+      });
+      
+      // Update Memory from DOM 
+      if (classesData[currentClassIndex]) {
+        classesData[currentClassIndex].students = students;
+      }
+  } else {
+      // Trust the memory state for student list
+      // We assume data was synced before switching views or updated in memory during group actions
+      students = classesData[currentClassIndex] ? classesData[currentClassIndex].students : [];
+  }
+
+  // SCRAPE: Capture current daily note (only if not skipping scrape)
+  const currentNote = agendaEl ? agendaEl.value || '' : '';
+  if (!skipDomScrape && classesData[currentClassIndex]) {
+    classesData[currentClassIndex].dailyNote = currentNote;
+  } else if (!classesData[currentClassIndex]) {
+    // FALLBACK: Create default if index invalid
+    classesData = [{
+      id: 'default-' + Date.now(),
+      name: 'Class 1',
+      dailyNote: currentNote,
+      students: students
+    }];
+    currentClassIndex = 0;
+  }
+
+  const state = {
+    profile: {
+      name: profileNameEl ? profileNameEl.textContent || '' : '',
+      className: profileClassEl ? profileClassEl.textContent || '' : '',
+      image: profileImgEl ? profileImgEl.src || '' : ''
+    },
+    portals: portalLabels,
+    activeClassIndex: currentClassIndex,
+    classes: classesData,
+    history: historyData,
+    viewMode: currentAppState.viewMode,
+    ledger: currentAppState.ledger
+  };
+
+  // PERSIST TIMER STATE
+  if (timerState.active) {
+    state.timer = {
+      active: true,
+      // Save the ABSOLUTE start time (Wall Clock)
+      wallClockStart: sessionStartTime || Date.now(),
+      duration: timerState.duration,
+      config: timerState.config,
+      // Save how much was paused so far
+      totalPaused: timerState.totalPaused,
+      selectionKey: timerState.selectionKey
+    };
+  } else {
+    state.timer = null; // Clear it if not active
+  }
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {}
+}
+
+/* ========================================= */
+/* REGION: TRANSACTION LEDGER (PHASE 1)    */
+/* ========================================= */
+
+/**
+ * Logs a star transaction to the ledger.
+ * @param {string} studentName - Name of the student.
+ * @param {string} action - 'ADD' or 'REMOVE'.
+ */
+function logTransaction(studentName, action) {
+  const activeClass = classesData[currentClassIndex];
+  if (!activeClass) return;
+
+  const tx = {
+    id: 'tx-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+    timestamp: Date.now(),
+    timeString: new Date().toLocaleTimeString(),
+    studentName: studentName,
+    classId: activeClass.id || null,
+    className: activeClass.name,
+    action: action, // "ADD" or "REMOVE"
+    reverted: false
+  };
+
+  // Add to top
+  if (!currentAppState.ledger) currentAppState.ledger = [];
+  currentAppState.ledger.unshift(tx);
+
+  // Trim
+  if (currentAppState.ledger.length > MAX_LEDGER_SIZE) {
+    currentAppState.ledger.pop();
+  }
+}
+
+/**
+ * Reverts a specific transaction.
+ * @param {string} txId - The ID of the transaction to revert.
+ */
+function revertTransaction(txId) {
+  const tx = currentAppState.ledger.find(t => t.id === txId);
+  if (!tx || tx.reverted) return;
+
+  const activeClass = classesData[currentClassIndex];
+  // SAFETY: Ensure we are in the correct class context
+  const sameClassById = tx.classId && activeClass.id === tx.classId;
+  const sameClassByName = activeClass.name === tx.className;
+  if (!sameClassById && !sameClassByName) {
+    alert(`Please switch to class "${tx.className}" to undo this action.`);
+    return;
+  }
+
+  const student = activeClass.students.find(s => s.name === tx.studentName);
+  if (!student) {
+    showToast(`Error: Student "${tx.studentName}" not found.`);
+    return;
+  }
+
+  // INVERSE ACTION
+  if (tx.action === 'ADD') {
+    student.count--;
+    // Check for debt
+    // Visual update happens on re-render
+  } else if (tx.action === 'REMOVE') {
+    student.count++;
+  }
+
+  tx.reverted = true;
+  saveData(true);
+  
+  // REFRESH UI
+  renderCurrentClass(); // Updates the main view
+  renderLedger();       // Updates the ledger view
+  showToast(`Undid ${tx.action} for ${tx.studentName}`);
+}
+
+function openLedgerModal() {
+  const modal = document.getElementById('ledger-modal');
+  if (modal) {
+    modal.showModal();
+    renderLedger();
+  }
+}
+
+function closeLedgerModal() {
+  const modal = document.getElementById('ledger-modal');
+  if (modal) modal.close();
+}
+
+function renderLedger() {
+  const container = document.getElementById('ledger-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const ledger = currentAppState.ledger || [];
+
+  if (ledger.length === 0) {
+    container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">No transactions recorded.</div>';
+    return;
+  }
+
+  ledger.forEach(tx => {
+    const row = document.createElement('div');
+    row.className = `ledger-row ${tx.reverted ? 'reverted' : ''}`;
+    
+    const badgeClass = tx.action === 'ADD' ? 'add' : 'remove';
+    const badgeText = tx.action === 'ADD' ? '+ ADD' : '- REM';
+    
+    row.innerHTML = `
+      <div class="tx-time">${tx.timeString}</div>
+      <div class="ledger-badge ${badgeClass}">${badgeText}</div>
+      <div class="tx-name">${tx.studentName}</div>
+      <div>
+        <button class="tx-undo-btn" onclick="revertTransaction('${tx.id}')" ${tx.reverted ? 'disabled' : ''}>
+          ${tx.reverted ? 'Reverted' : 'Undo'}
+        </button>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function injectLedgerButton() {
+  const menuSection = document.querySelector('.side-menu-section');
+  if (!menuSection) return;
+  if (document.getElementById('side-menu-ledger-btn')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'side-menu-ledger-btn';
+  btn.className = 'side-menu-item';
+  btn.type = 'button';
+  btn.onclick = openLedgerModal;
+  btn.innerHTML = `
+    <span>📋</span>
+    <span>Ledger</span>
+  `;
+
+  // Insert after History button
+  const historyBtn = document.getElementById('side-menu-history-btn');
+  if (historyBtn && historyBtn.nextSibling) {
+    menuSection.insertBefore(btn, historyBtn.nextSibling);
+  } else {
+    menuSection.appendChild(btn);
+  }
+}
+
+/**
+ * Exports the currently active class as a JSON file.
+ * This is a PARTIAL export (only the active class), not a full backup.
+ * Intended for transferring a single class session between devices.
+ */
+function exportCurrentClass() {
+  const options = arguments[0] || {};
+  const skipSync = options.skipSync === true;
+  const successToastMessage = options.successToastMessage || "Class exported successfully!";
+  const errorToastMessage = options.errorToastMessage || "Error: No active class to export.";
+
+  // 1. Ensure memory is synced with latest UI changes
+  if (!skipSync) {
+    saveData();
+  }
+
+  // 2. Get Active Class from Memory (Rule #2: Source of Truth)
+  const activeClass = classesData[currentClassIndex];
+  if (!activeClass) {
+    showToast(errorToastMessage);
+    return false;
+  }
+
+  // 3. Deep Copy Students (Rule #2: Avoid Reference Issues)
+  // We use JSON parse/stringify for a clean deep copy of the students array
+  const studentsCopy = JSON.parse(JSON.stringify(activeClass.students));
+  const groupsCopy = activeClass.groups ? JSON.parse(JSON.stringify(activeClass.groups)) : [];
+
+  // 4. Generate JSON Payload
+  const payload = {
+    type: "SPROUT_CLASS",
+    version: "1.0",
+    exportedAt: new Date().toISOString(),
+    className: activeClass.name,
+    dailyNote: activeClass.dailyNote || "",
+    students: studentsCopy,
+    groups: groupsCopy
+  };
+
+  // 5. Trigger Download
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href", dataStr);
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = now.getFullYear();
+  const hour = String(now.getHours()).padStart(2, '0');
+  const minute = String(now.getMinutes()).padStart(2, '0');
+  const safeName = activeClass.name.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_');
+  const fileName = `${safeName}_${day}_${month}_${year}_${hour}_${minute}.json`;
+  downloadAnchorNode.setAttribute("download", fileName);
+  document.body.appendChild(downloadAnchorNode); // Required for Firefox
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+  
+  showToast(successToastMessage);
+  return true;
+}
+
+/* ========================================= */
+/* REGION: GROUP VIEW & LOGIC          */
+/* ========================================= */
+
+function switchView(mode) {
+    if (mode === currentAppState.viewMode) return;
+    
+    // Save current state before switching to capture any edits
+    saveData();
+    
+    currentAppState.viewMode = mode;
+    
+    // Update Toggle UI
+    document.getElementById('view-btn-ind').classList.toggle('active', mode === 'individual');
+    document.getElementById('view-btn-grp').classList.toggle('active', mode === 'group');
+    // Add this line:
+    document.getElementById('view-btn-pkr').classList.toggle('active', mode === 'picker');
+    
+    // Re-render
+    renderCurrentClass();
+}
+
+function renderGroupView() {
+    const container = document.getElementById('card-list');
+    container.innerHTML = ''; // Clear existing
+    
+    // Apply Grid Style
+    container.classList.add('group-pods-container');
+    
+    // VISUAL FIX: Ensure Grid Centering
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(300px, 1fr))';
+    container.style.justifyContent = 'center';
+    container.style.gap = '30px';
+    container.style.width = '100%';
+    container.style.maxWidth = '1200px';
+    container.style.margin = '0 auto';
+
+    const activeClass = classesData[currentClassIndex];
+    if (!activeClass || !activeClass.groups || activeClass.groups.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px; color:#666;">No groups created yet. Use the Group Builder in the menu to set up groups.</div>';
+        return;
+    }
+
+    const students = activeClass.students || [];
+    
+    activeClass.groups.forEach(group => {
+        const members = students.filter(s => s.groupId === group.id);
+        
+        const pod = document.createElement('div');
+        pod.className = 'group-pod';
+        
+        const memberListHtml = members.map(m => `
+            <div class="group-member-item">
+                <div class="member-info">
+                    <span>${m.emoji}</span>
+                    <span>${m.name}</span>
+                </div>
+                <div class="member-stars">
+                    ${m.count} ⭐
+                </div>
+            </div>
+        `).join('');
+        
+        pod.innerHTML = `
+            <div class="group-pod-header">
+                <div class="group-pod-title">
+                    <div class="group-color-dot" style="background-color: ${group.color}"></div>
+                    ${group.name}
+                </div>
+                <div class="group-pod-controls">
+                    <button class="group-action-btn" onclick="giveStarToGroup('${group.id}')">
+                        <span>⭐</span> Give All
+                    </button>
+                </div>
+            </div>
+            <div class="group-members-list">
+                ${memberListHtml}
+            </div>
+        `;
+        
+        container.appendChild(pod);
+    });
+    
+    // Unassigned
+    const unassigned = students.filter(s => !s.groupId);
+    if (unassigned.length > 0) {
+        const pod = document.createElement('div');
+        pod.className = 'group-pod';
+        pod.style.border = '2px dashed #eee';
+        
+         const memberListHtml = unassigned.map(m => `
+            <div class="group-member-item" style="background:#fff;">
+                <div class="member-info">
+                    <span>${m.emoji}</span>
+                    <span>${m.name}</span>
+                </div>
+                <div class="member-stars">
+                    ${m.count} ⭐
+                </div>
+            </div>
+        `).join('');
+        
+        pod.innerHTML = `
+            <div class="group-pod-header">
+                <div class="group-pod-title" style="color:#999">
+                    Unassigned
+                </div>
+            </div>
+            <div class="group-members-list">
+                ${memberListHtml}
+            </div>
+        `;
+        container.appendChild(pod);
+    }
+}
+
+function giveStarToGroup(groupId) {
+    const activeClass = classesData[currentClassIndex];
+    if (!activeClass) return;
+    
+    let updated = false;
+    activeClass.students.forEach(s => {
+        if (s.groupId === groupId) {
+            s.count++;
+            logTransaction(s.name, 'ADD'); // LEDGER
+            updated = true;
+        }
+    });
+    
+    if (updated) {
+        // Play star sound if available
+        // Try to access the app instance or use a simple fallback
+        try { 
+            // Reuse the existing playStarSound logic if possible, or manual beep
+             // Just creating a temporary pile sim for sound is overkill.
+             // Let's create a simple audio context beep or use the existing App class method if accessible.
+             // Since 'app' is the instance of App class (if assigned), check it.
+             // Actually, the App class has playStarSound.
+             if (window.app && window.app.playStarSound) {
+                 window.app.playStarSound();
+             } else {
+                 // Fallback beep
+                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                 const osc = ctx.createOscillator();
+                 const gain = ctx.createGain();
+                 osc.connect(gain);
+                 gain.connect(ctx.destination);
+                 osc.frequency.setValueAtTime(880, ctx.currentTime);
+                 gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                 osc.start();
+                 osc.stop(ctx.currentTime + 0.1);
+             }
+        } catch(e) {}
+        
+        saveData();
+        renderGroupView(); // Re-render immediately
+        showToast(`Added star to group!`);
+    }
+}
+
+/**
+ * Loads data from localStorage, handles migrations, and initializes the app state.
+ */
+function loadData() {
+  let raw = null;
+  try {
+    raw = window.localStorage ? window.localStorage.getItem(STORAGE_KEY) : null;
+  } catch (e) {
+    raw = null;
+  }
+
+  // DEFAULT: Initial state structure
+  let data = {
+    profile: {},
+    portals: [],
+    activeClassIndex: 0,
+    classes: [],
+    history: []
+  };
+
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed) {
+        // MIGRATION CHECK: Check for legacy flat structure (old version compatibility)
+        if (!parsed.classes || !Array.isArray(parsed.classes)) {
+           // LEGACY HANDLING: Convert old single-class data to new multi-class array
+           const legacyStudents = parsed.students || [];
+           const legacyNote = parsed.note || '';
+           data.classes = [{
+             id: 'class-legacy',
+             name: 'Class 1',
+             dailyNote: legacyNote,
+             students: legacyStudents,
+             groups: []
+           }];
+           data.activeClassIndex = 0;
+           data.profile = parsed.profile || {};
+           data.portals = parsed.portals || [];
+           data.history = parsed.history || [];
+        } else {
+           // SCHEMA: Valid new schema
+           data = parsed;
+           if (!data.history) data.history = [];
+        }
+      }
+    } catch (e) {}
+  } else {
+    // INIT: No data found, create fresh start
+    data.classes = [{
+      id: 'class-default',
+      name: 'Class 1',
+      dailyNote: '',
+      students: [],
+      groups: []
+    }];
+  }
+
+  // STATE: Update global variables
+  classesData = data.classes;
+  historyData = data.history || [];
+  currentClassIndex = typeof data.activeClassIndex === 'number' && data.activeClassIndex >= 0 && data.activeClassIndex < classesData.length ? data.activeClassIndex : 0;
+
+  if (data.viewMode) {
+      currentAppState.viewMode = data.viewMode;
+      // Sync Toggle UI
+      const indBtn = document.getElementById('view-btn-ind');
+      const grpBtn = document.getElementById('view-btn-grp');
+      if (indBtn && grpBtn) {
+          indBtn.classList.toggle('active', data.viewMode === 'individual');
+          grpBtn.classList.toggle('active', data.viewMode === 'group');
+      }
+  }
+
+  // RESTORE: Ledger
+  if (data.ledger && Array.isArray(data.ledger)) {
+      currentAppState.ledger = data.ledger;
+  } else {
+      currentAppState.ledger = [];
+  }
+
+  // RESTORE: Timer (The Resurrection)
+  if (data.timer && data.timer.active) {
+      const now = Date.now();
+      const saved = data.timer;
+      const elapsed = now - saved.wallClockStart - (saved.totalPaused || 0);
+
+      // Check if session is still valid
+      if (elapsed < saved.duration) {
+          console.log("♻️ RESTORING ACTIVE SESSION...");
+          const select = document.getElementById('duration-select');
+          if (select && saved.selectionKey) {
+              select.value = saved.selectionKey;
+          }
+          timerState = {
+              active: true,
+              paused: false,
+              // CRITICAL: Re-align performance.now() so the animation loop works
+              startTime: performance.now() - elapsed,
+              pausedAt: 0,
+              totalPaused: saved.totalPaused || 0,
+              selectionKey: saved.selectionKey,
+              duration: saved.duration,
+              config: saved.config,
+              sessionArchived: false,
+              sessionAutoExported: false
+          };
+          
+          // Restore global session start time
+          sessionStartTime = saved.wallClockStart;
+
+          // Restart Engine
+          if (timerInterval) clearInterval(timerInterval);
+          timerInterval = setInterval(updateTimerDisplay, 250);
+          updateTimerDisplay();
+          
+          // Updates UI Buttons
+          document.getElementById('pause-btn').disabled = false;
+          document.getElementById('reset-btn').disabled = false;
+          document.getElementById('minus-btn').disabled = false;
+          document.getElementById('plus-btn').disabled = false;
+      } else {
+          console.log("⚰️ Saved session expired.");
+          resetTimer();
+      }
+  }
+
+  // RENDER: Global Data (Profile, Portals)
+  const profileNameEl = document.querySelector('.profile-name');
+  const profileClassEl = document.querySelector('.profile-class');
+  const profileImgEl = document.getElementById('profile-img');
+  const portalLabels = Array.from(document.querySelectorAll('.links-grid .link-label'));
+
+  if (data.profile) {
+    if (profileNameEl && typeof data.profile.name === 'string') {
+      profileNameEl.textContent = data.profile.name;
+    }
+    if (profileClassEl && typeof data.profile.className === 'string') {
+      profileClassEl.textContent = data.profile.className;
+    }
+    if (profileImgEl && typeof data.profile.image === 'string' && data.profile.image.length) {
+      profileImgEl.src = data.profile.image;
+    }
+  }
+
+  if (Array.isArray(data.portals) && portalLabels.length) {
+    portalLabels.forEach((el, idx) => {
+      if (typeof data.portals[idx] === 'string') {
+        el.textContent = data.portals[idx];
+      }
+    });
+  }
+
+  // RENDER: Tabs & Current Class
+  renderClassTabs();
+  renderCurrentClass();
+}
+
+/* ========================================= */
+/* REGION: GROUP SYSTEM LOGIC          */
+/* ========================================= */
+
+function openGroupBuilder() {
+  const modal = document.getElementById('group-builder-modal');
+  if (modal) {
+    modal.showModal();
+    renderGroupBuilder();
+  }
+}
+
+function closeGroupBuilder() {
+  const modal = document.getElementById('group-builder-modal');
+  if (modal) modal.close();
+}
+
+/**
+ * Renders the group builder interface (bench and group cards).
+ */
+function renderGroupBuilder() {
+  const ungroupedZone = document.getElementById('ungrouped-zone');
+  const groupsZone = document.getElementById('groups-zone');
+  
+  if (!ungroupedZone || !groupsZone) return;
+  
+  ungroupedZone.innerHTML = '';
+  groupsZone.innerHTML = '';
+
+  const activeClass = classesData[currentClassIndex];
+  if (!activeClass) return;
+
+  // 1. Render Groups
+  if (activeClass.groups && activeClass.groups.length > 0) {
+    activeClass.groups.forEach(group => {
+      const groupCard = document.createElement('div');
+      groupCard.className = 'group-card';
+      groupCard.style.borderTop = `4px solid ${group.color || '#ccc'}`;
+      
+      // Header Construction
+      const header = document.createElement('div');
+      header.className = 'group-card-header';
+      
+      // 1. Create Title Element
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'group-title';
+      titleSpan.textContent = group.name;
+      titleSpan.title = "Double-click to rename"; // Tooltip hint
+      
+      // 2. Attach Edit Logic
+      titleSpan.ondblclick = (e) => {
+          e.stopPropagation();
+          
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = group.name;
+          input.className = 'group-title-input';
+          
+          const save = () => {
+              if (input.value.trim() !== "") {
+                  // Update Memory
+                  group.name = input.value.trim();
+                  saveData();
+                  // Re-render to show text again
+                  renderGroupBuilder();
+              } else {
+                  // Revert if empty
+                  renderGroupBuilder();
+              }
+          };
+
+          input.addEventListener('blur', save);
+          input.addEventListener('keydown', (ev) => {
+              if (ev.key === 'Enter') input.blur();
+          });
+
+          titleSpan.replaceWith(input);
+          input.focus();
+      };
+
+      // 3. Assemble Header
+      header.appendChild(titleSpan);
+      
+      // Add Delete Button (Existing Logic)
+      const delBtn = document.createElement('button');
+      delBtn.className = 'group-delete-btn';
+      delBtn.innerHTML = '🗑️';
+      delBtn.title = 'Delete Group';
+      delBtn.onclick = () => deleteGroup(group.id);
+      header.appendChild(delBtn);
+      
+      // Body (Drop Zone)
+      const body = document.createElement('div');
+      body.className = 'group-card-body';
+      body.dataset.groupId = group.id; 
+      
+      // Students in this group
+      const groupStudents = activeClass.students.filter(s => s.groupId === group.id);
+      groupStudents.forEach(s => {
+        body.appendChild(createStudentChip(s));
+      });
+      
+      groupCard.appendChild(header);
+      groupCard.appendChild(body);
+      groupsZone.appendChild(groupCard);
+    });
+  }
+
+  // 2. Render Ungrouped Students (Bench)
+  const benchStudents = activeClass.students.filter(s => !s.groupId);
+  benchStudents.forEach(s => {
+    ungroupedZone.appendChild(createStudentChip(s));
+  });
+}
+
+/**
+ * Creates a DOM element for a student chip.
+ * @param {Object} student - The student object.
+ */
+function createStudentChip(student) {
+  const chip = document.createElement('div');
+  chip.className = 'gb-student-chip';
+  chip.onclick = (e) => showMoveMenu(e, student);
+  chip.title = "Click to move";
+  chip.innerHTML = `
+    <span class="gb-chip-emoji">${student.emoji}</span>
+    <span class="gb-chip-name">${student.name}</span>
+  `;
+  return chip;
+}
+
+/**
+ * Adds a new group to the active class.
+ */
+function addGroup() {
+  const activeClass = classesData[currentClassIndex];
+  if (!activeClass) return;
+  
+  if (!activeClass.groups) activeClass.groups = [];
+  
+  const colors = ['#ff9f43', '#ee5253', '#2e8b57', '#2980b9', '#9b59b6', '#1abc9c', '#34495e', '#e67e22'];
+  const nextNum = activeClass.groups.length + 1;
+  const color = colors[(nextNum - 1) % colors.length];
+  
+  const newGroup = {
+    id: 'g-' + Date.now() + Math.random().toString(36).substr(2, 5),
+    name: 'Group ' + nextNum,
+    color: color
+  };
+  
+  activeClass.groups.push(newGroup);
+  saveData();
+  renderGroupBuilder();
+}
+
+/**
+ * Deletes a group and moves its members to the bench.
+ * @param {string} groupId 
+ */
+function deleteGroup(groupId) {
+  const activeClass = classesData[currentClassIndex];
+  if (!activeClass || !activeClass.groups) return;
+  
+  // Remove group
+  activeClass.groups = activeClass.groups.filter(g => g.id !== groupId);
+  
+  // Reset students
+  activeClass.students.forEach(s => {
+    if (s.groupId === groupId) s.groupId = null;
+  });
+  
+  saveData();
+  renderGroupBuilder();
+}
+
+/**
+ * Randomizes students into groups.
+ */
+function randomizeGroups() {
+  const countInput = document.getElementById('group-count-input');
+  const count = parseInt(countInput.value, 10) || 4;
+  
+  const activeClass = classesData[currentClassIndex];
+  if (!activeClass) return;
+
+  // 1. Clear existing groups
+  activeClass.groups = [];
+  
+  // 2. Create new groups
+  const colors = ['#ff9f43', '#ee5253', '#2e8b57', '#2980b9', '#9b59b6', '#1abc9c', '#34495e', '#e67e22'];
+  for(let i=1; i<=count; i++) {
+    activeClass.groups.push({
+      id: 'g-rand-' + i + '-' + Date.now(),
+      name: 'Group ' + i,
+      color: colors[(i - 1) % colors.length]
+    });
+  }
+  
+  // 3. Shuffle Students
+  const students = [...activeClass.students]; // Copy
+  // Fisher-Yates Shuffle
+  for (let i = students.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [students[i], students[j]] = [students[j], students[i]];
+  }
+  
+  // 4. Distribute Round Robin
+  students.forEach((s, idx) => {
+    const groupIndex = idx % count;
+    // Update reference in main array (find by emoji/name to be safe, or just trust object reference if not deep cloned)
+    // NOTE: In JS, objects in arrays are references. Modifying 's' modifies the object in 'students' array.
+    // BUT 'students' here is a copy of the array. The objects inside are shared with 'activeClass.students'.
+    // So modifying s.groupId is safe.
+    s.groupId = activeClass.groups[groupIndex].id;
+  });
+  
+  saveData();
+  renderGroupBuilder();
+  showToast(`Randomized into ${count} groups!`);
+}
+
+/**
+ * Shows a context menu to move a student.
+ * @param {MouseEvent} e - The click event.
+ * @param {Object} student - The student object (used for initial name lookup).
+ */
+function showMoveMenu(e, student) {
+  // Remove existing menu
+  const existing = document.querySelector('.gb-move-menu');
+  if (existing) existing.remove();
+  
+  const activeClass = classesData[currentClassIndex];
+  if (!activeClass) return;
+
+  const menu = document.createElement('div');
+  menu.className = 'gb-move-menu';
+  
+  // Option: Ungroup (if currently in a group)
+  // Check the live data first to ensure button visibility is correct
+  const currentStudent = activeClass.students.find(s => s.name === student.name);
+  if (currentStudent && currentStudent.groupId) {
+    const btn = document.createElement('button');
+    btn.className = 'gb-move-item';
+    btn.innerHTML = '🚫 Remove from Group';
+    btn.onclick = () => {
+      // DATA INTEGRITY: Re-fetch active class to ensure fresh reference
+      const freshClass = classesData[currentClassIndex];
+      // Find the exact student object in the master array by name
+      const targetStudent = freshClass.students.find(s => s.name === student.name);
+      
+      if (targetStudent) {
+        // UPDATE: Modify the Master Object
+        targetStudent.groupId = null;
+        // PERSIST: Save and Refresh UI
+        saveData();
+        renderGroupBuilder();
+        showToast(`Removed ${targetStudent.name} from group`);
+      }
+      menu.remove();
+    };
+    menu.appendChild(btn);
+  }
+  
+  // Options: Move to Group X
+  if (activeClass.groups && activeClass.groups.length > 0) {
+    activeClass.groups.forEach(g => {
+      // Skip if already in this group
+      if (currentStudent && g.id === currentStudent.groupId) return; 
+      
+      const btn = document.createElement('button');
+      btn.className = 'gb-move-item';
+      btn.innerHTML = `Move to <b>${g.name}</b>`;
+      btn.style.borderLeft = `4px solid ${g.color}`;
+      btn.onclick = () => {
+        // DATA INTEGRITY: Re-fetch active class to ensure fresh reference
+        const freshClass = classesData[currentClassIndex];
+        // Find the exact student object in the master array by name
+        const targetStudent = freshClass.students.find(s => s.name === student.name);
+        
+        if (targetStudent) {
+          // UPDATE: Modify the Master Object
+          targetStudent.groupId = g.id;
+          // PERSIST: Save and Refresh UI
+          saveData();
+          renderGroupBuilder();
+          showToast(`Moved ${targetStudent.name} to ${g.name}`);
+        }
+        menu.remove();
+      };
+      menu.appendChild(btn);
+    });
+  } else {
+    const msg = document.createElement('div');
+    msg.className = 'gb-move-item';
+    msg.innerHTML = '<span style="color:#999">No groups created yet</span>';
+    menu.appendChild(msg);
+  }
+  
+  // Z-INDEX STRATEGY: Determine where to append the menu
+  // If the group builder modal is open, we MUST append to it (or its parent context)
+  // to avoid occlusion by the top-layer dialog.
+  const gbModal = document.getElementById('group-builder-modal');
+  const isGbOpen = gbModal && gbModal.hasAttribute('open');
+  
+  // Positioning logic needs adjustment based on container
+  let top = e.clientY;
+  let left = e.clientX;
+  
+  menu.style.top = top + 'px';
+  menu.style.left = left + 'px';
+
+  if (isGbOpen) {
+    // Append INSIDE the modal so it shares the top-layer stacking context
+    gbModal.appendChild(menu);
+    // Note: Since menu is fixed position, clientX/Y still works.
+  } else {
+    document.body.appendChild(menu);
+  }
+  
+  // Close on outside click
+  setTimeout(() => {
+    const closeHandler = (ev) => {
+      if (!menu.contains(ev.target)) {
+        menu.remove();
+        document.removeEventListener('click', closeHandler);
+      }
+    };
+    document.addEventListener('click', closeHandler);
+  }, 0);
+}
+
+/* ========================================= */
+/* REGION: PHYSICS ENGINE              */
+/* ========================================= */
+
+/**
+ * PileSim - A particle physics simulation for the star pile.
+ * Handles gravity, collision, and stacking logic.
+ */
+class PileSim {
+  /**
+   * Creates a new simulation instance for a card.
+   * @param {HTMLElement} card - The student card element.
+   */
+  constructor(card) {
+    this.card = card;
+    this.area = card.querySelector('.stars-area');
+    this.counter = card.querySelector('.count');
+    this.particles = [];
+    this.width = this.area.clientWidth;
+    this.height = this.area.clientHeight;
+    this.running = false;
+    this.last = performance.now();
+
+    // SEED: Create initial particles based on current count
+    const initial = parseInt(this.counter.textContent, 10) || 0;
+    for(let i = 0; i < initial; i++) {
+      this.createParticle(false, i);
+    }
+
+    // RESPONSIVE: Handle container resizing
+    const resizeObserver = new ResizeObserver(() => this.onResize());
+    resizeObserver.observe(this.area);
+
+    this.start();
+  }
+
+  /**
+   * Handles resize events by keeping particles within bounds.
+   */
+  onResize() {
+    this.width = this.area.clientWidth;
+    this.height = this.area.clientHeight;
+    this.particles.forEach(p => {
+      // CONSTRAINT: Clamp positions to new boundaries
+      p.x = Math.min(Math.max(p.x, 0), this.width - p.r * 2);
+      p.y = Math.min(Math.max(p.y, -50), this.height - p.r * 2);
+      p.settled = false;
+    });
+    this.start();
+  }
+
+  /**
+   * Starts the simulation loop.
+   */
+  start() {
+    if (this.running) return;
+    this.running = true;
+    this.last = performance.now();
+    requestAnimationFrame(this.step.bind(this));
+  }
+
+  /**
+   * The main physics step loop.
+   * @param {number} now - Current timestamp.
+   */
+  step(now) {
+    let dt = (now - this.last) / 1000;
+    this.last = now;
+    if (dt > 0.1) dt = 0.1; // SAFETY: Cap time step to prevent explosions on lag
+
+    const stepDt = dt / SUBSTEPS;
+    for(let i=0; i<SUBSTEPS; i++){
+        this.simulate(stepDt);
+    }
+
+    this.render();
+
+    // OPTIMIZATION: Stop loop if all particles are sleeping to save battery/CPU
+    let allSettled = true;
+    for(let p of this.particles) {
+        if (!p.settled) { allSettled = false; break; }
+    }
+
+    if (this.running) requestAnimationFrame(this.step.bind(this));
+  }
+
+  /**
+   * Runs the physics simulation for a single sub-step.
+   * @param {number} dt - Delta time.
+   */
+  simulate(dt) {
+    // 1. INTEGRATION: Apply velocity and gravity
+    for (let p of this.particles) {
+      if (p.settled) continue;
+      p.vy += GRAVITY * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+    }
+
+    // 2. COLLISIONS: Particle-to-particle (MOVED UP)
+    // We resolve these forces first so they can push particles towards walls
+    for (let i = 0; i < this.particles.length; i++) {
+      for (let j = i + 1; j < this.particles.length; j++) {
+        const a = this.particles[i];
+        const b = this.particles[j];
+
+        // OPTIMIZATION: Broad phase check to skip distant particles
+        if (Math.abs(a.x - b.x) > STAR_PX || Math.abs(a.y - b.y) > STAR_PX) continue;
+
+        const dx = (b.x + b.r) - (a.x + a.r);
+        const dy = (b.y + b.r) - (a.y + a.r);
+        const distSq = dx*dx + dy*dy;
+        const minDist = a.r + b.r;
+
+        if (distSq < minDist * minDist) {
+          const dist = Math.sqrt(distSq) || 0.0001;
+          const overlap = minDist - dist;
+          const nx = dx / dist;
+          const ny = dy / dist;
+
+          // SOLVER: Separate particles to resolve overlap
+          const push = overlap * 0.5;
+          a.x -= nx * push; a.y -= ny * push;
+          b.x += nx * push; b.y += ny * push;
+
+          if (push > 0.05) { a.settled = false; b.settled = false; }
+
+          // SOLVER: Exchange momentum (elastic collision)
+          const relVx = b.vx - a.vx;
+          const relVy = b.vy - a.vy;
+          const sepVel = relVx * nx + relVy * ny;
+
+          if (sepVel < 0) {
+            const impulse = -sepVel * 0.5;
+            a.vx -= nx * impulse; a.vy -= ny * impulse;
+            b.vx += nx * impulse; b.vy += ny * impulse;
+          }
+        }
+      }
+    }
+
+    // 3. BOUNDARIES: Wall and floor collisions (MOVED DOWN)
+    // This is now the FINAL Authority. It clamps any particles pushed out by Step 2.
+    for (let p of this.particles) {
+      if(p.settled) continue;
+      
+      // Left Wall
+      if (p.x < 0) { 
+          p.x = 0; 
+          p.vx = -p.vx * RESTITUTION; 
+      } 
+      // Right Wall
+      else if (p.x + p.r * 2 > this.width) { 
+          p.x = this.width - p.r * 2; 
+          p.vx = -p.vx * RESTITUTION; 
+      }
+
+      // Floor
+      if (p.y + p.r * 2 > this.height) {
+        p.y = this.height - p.r * 2;
+        if (Math.abs(p.vy) > 20) { p.vy = -p.vy * RESTITUTION; }
+        else { p.vy = 0; }
+        p.vx *= FRICTION;
+      }
+    }
+
+    // 4. SLEEP: Deactivate particles that are essentially stopped
+    for (let p of this.particles) {
+      if (p.settled) continue;
+      const speed = Math.abs(p.vx) + Math.abs(p.vy);
+      const onFloor = p.y + p.r * 2 >= this.height - 1;
+
+      if (speed < 5 && onFloor) { p.settled = true; p.vx = 0; p.vy = 0; }
+      else if (speed < 5) { p.vx *= 0.9; p.vy *= 0.9; }
+    }
+  }
+
+  /**
+   * Updates the DOM elements based on physics state.
+   */
+  render() {
+    for (let p of this.particles) {
+      p.el.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${p.rot}deg)`;
+    }
+  }
+
+  /**
+   * Creates a new star particle.
+   * @param {boolean} animate - Whether to play the pop-in animation.
+   * @param {number|null} index - Index for static layout calculation.
+   * @returns {Object} The particle object.
+   */
+  createParticle(animate = true, index = null) {
+    const r = STAR_PX / 2;
+    const el = document.createElement('div');
+    el.className = 'star-el';
+    const inner = document.createElement('div');
+    inner.className = 'star-content';
+    inner.textContent = '⭐';
+    el.appendChild(inner);
+    this.area.appendChild(el);
+
+    // INIT: Randomize start position/velocity for dynamic spawn
+    let x = (this.width - STAR_PX) / 2 + (Math.random() - 0.5) * 40;
+    let y = -STAR_PX - 5;
+    let vx = (Math.random() - 0.5) * 100;
+    let vy = 0;
+    let rot = (Math.random() - 0.5) * 30;
+    let settled = false;
+
+    // LAYOUT: Calculate grid position for initial static spawn
+    if (index !== null && !animate) {
+      const perRow = Math.floor((this.width - 20) / (STAR_PX * 0.85));
+      const row = Math.floor(index / perRow);
+      const col = index % perRow;
+      y = this.height - STAR_PX - (row * (STAR_PX * 0.85)) - 2;
+      const xStart = (this.width - (perRow * STAR_PX)) / 2;
+      x = xStart + col * STAR_PX + (row % 2) * (STAR_PX/2) + (Math.random()*4);
+      vx = 0; vy = 0; settled = true;
+      rot = (Math.random() - 0.5) * 20;
+    }
+
+    const p = { x, y, vx, vy, r, el, rot, settled };
+    this.particles.push(p);
+
+    if (animate) {
+      inner.classList.add('pop-anim');
+      this.start();
+    } else {
+      el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+    }
+    return p;
+  }
+
+  /**
+   * Removes the most recently added star particle with animation.
+   */
+  removeLast() {
+    if (this.particles.length === 0) return;
+    const p = this.particles.pop();
+    // ANIMATION: Shrink and fade out using Web Animation API
+    const anim = p.el.animate([
+        { transform: p.el.style.transform + ' scale(1)', opacity: 1 },
+        { transform: p.el.style.transform + ' scale(0)', opacity: 0 }
+    ], { duration: 200 });
+    anim.onfinish = () => p.el.remove();
+  }
+}
+
+/**
+ * Factory function to get or create a simulation for a card.
+ * @param {HTMLElement} card - The student card.
+ * @returns {PileSim} The simulation instance.
+ */
+function getSim(card) {
+  if (sims.has(card)) return sims.get(card);
+  const s = new PileSim(card);
+  sims.set(card, s);
+  return s;
+}
+
+/* ========================================= */
+/* REGION: CORE BUSINESS LOGIC         */
+/* ========================================= */
+
+/**
+ * Toggles the timer pause state.
+ */
+function togglePause() {
+  if (!timerState.active) return;
+
+  const now = performance.now();
+  const btn = document.getElementById('pause-btn');
+
+  if (timerState.paused) {
+    // RESUME: Add paused duration to totalPaused to shift start time effectively
+    timerState.totalPaused += (now - timerState.pausedAt);
+    timerState.paused = false;
+    btn.textContent = '⏸️';
+    document.getElementById('timer-status').textContent = 'Resumed';
+  } else {
+    // PAUSE: Record when we paused
+    timerState.pausedAt = now;
+    timerState.paused = true;
+    btn.textContent = '▶️';
+    document.getElementById('timer-status').textContent = 'Paused';
+  }
+  updateTimerDisplay(); // Force update to ensure UI is consistent
+}
+
+/**
+ * Adjusts the remaining time on the timer.
+ * @param {number} seconds - Seconds to add (positive) or remove (negative).
+ */
+function adjustTime(seconds) {
+  if (!timerState.active) return;
+
+  // LOGIC: Increasing startTime effectively reduces elapsed time (adding time to clock)
+  const ms = seconds * 1000;
+  timerState.startTime += ms;
+
+  updateTimerDisplay();
+}
+
+/**
+ * Resets the timer to its initial inactive state.
+ */
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerState = {
+    active: false,
+    paused: false,
+    startTime: 0,
+    pausedAt: 0,
+    totalPaused: 0,
+    duration: 0,
+    config: null,
+    sessionArchived: false,
+    sessionAutoExported: false
+  };
+  
+  // PERSISTENCE: Clear saved timer state
+  saveData();
+
+  // UI: Reset visuals
+  document.getElementById('timer-display').textContent = "--:--:--";
+  document.getElementById('timer-status').textContent = "Select duration to begin";
+  document.getElementById('timer-fill').style.width = "0%";
+  document.getElementById('timer-fill').style.background = "#f1c40f";
+  document.getElementById('pause-btn').disabled = true;
+  document.getElementById('reset-btn').disabled = true;
+  document.getElementById('minus-btn').disabled = true;
+  document.getElementById('plus-btn').disabled = true;
+  document.getElementById('duration-select').value = "";
+}
+
+/**
+ * Calculates the total elapsed time of the current timer session.
+ * @returns {number} Elapsed milliseconds.
+ */
+function getElapsed() {
+    if (!timerState.active) return 0;
+    const now = performance.now();
+    if (timerState.paused) {
+        return timerState.pausedAt - timerState.startTime - timerState.totalPaused;
+    }
+    return now - timerState.startTime - timerState.totalPaused;
+}
+
+/**
+ * Main timer loop function. Updates display, checks completion and breaks.
+ */
+function updateTimerDisplay() {
+    if (!timerState.active) return;
+
+    const elapsed = getElapsed();
+    const remaining = Math.max(0, timerState.duration - elapsed);
+
+    const display = document.getElementById('timer-display');
+    const status = document.getElementById('timer-status');
+    const fill = document.getElementById('timer-fill');
+
+    // CHECK: Is timer complete?
+    if (remaining <= 0) {
+        clearInterval(timerInterval);
+        display.textContent = "00:00:00";
+        status.textContent = "Session Complete!";
+        fill.style.width = "100%";
+        fill.style.background = "#2ecc71";
+
+        // EVENT: Archive session only once
+        if (!timerState.sessionArchived) {
+          SoundManager.playSessionEnd();
+          archiveSession("Timer Complete");
+          if (!timerState.sessionAutoExported) {
+            exportCurrentClass({
+              skipSync: true,
+              successToastMessage: "Session auto-export complete.",
+              errorToastMessage: "Session auto-export failed: no active class."
+            });
+            timerState.sessionAutoExported = true;
+          }
+          timerState.sessionArchived = true;
+        }
+
+        timerState.active = false;
+        return;
+    }
+
+    // CHECK: Handle break phases
+    let currentPhase = 'Working';
+    if (timerState.paused) currentPhase = 'Paused';
+
+    let phaseColor = '#f1c40f'; // Default yellow
+
+    if (timerState.config.breaks) {
+      const elapsedMinutes = elapsed / 60000;
+
+      for (let b of timerState.config.breaks) {
+        // AUDIO: Play break sounds (within 500ms tolerance)
+        if (!timerState.paused) {
+            const breakStartMs = b.start * 60000;
+            const breakEndMs = (b.start + b.duration) * 60000;
+
+            if (Math.abs(elapsed - breakStartMs) < 500) SoundManager.playBreakStart();
+            if (Math.abs(elapsed - breakEndMs) < 500) SoundManager.playBreakEnd();
+        }
+
+        // VISUAL: Update status text during break
+        if (elapsedMinutes >= b.start && elapsedMinutes < (b.start + b.duration)) {
+          currentPhase = `BREAK TIME (${Math.ceil(((b.start + b.duration) * 60000 - elapsed)/1000)}s left)`;
+          phaseColor = '#3498db'; // Blue for break
+          if (timerState.paused) currentPhase = 'Break Paused';
+        }
+      }
+    }
+
+    status.textContent = currentPhase;
+    fill.style.background = phaseColor;
+
+    // RENDER: Format time string
+    const hrs = Math.floor(remaining / 1000 / 60 / 60);
+    const mins = Math.floor((remaining / 1000 / 60) % 60);
+    const secs = Math.floor((remaining / 1000) % 60);
+
+    display.textContent =
+        `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+    // RENDER: Progress bar
+    const pct = Math.min(100, (elapsed / timerState.duration) * 100);
+    fill.style.width = pct + "%";
+}
+
+/**
+ * Starts a new timer based on the selected duration.
+ */
+function startDurationTimer() {
+    SoundManager.init(); // TRIGGER: User interaction requires audio context resume
+
+    const select = document.getElementById('duration-select');
+    const selectedValue = select.value;
+
+    if (!selectedValue || !DURATION_CONFIG[selectedValue]) {
+        resetTimer();
+        return;
+    }
+
+    const config = DURATION_CONFIG[selectedValue];
+
+    timerState = {
+      active: true,
+      paused: false,
+      startTime: performance.now(),
+      pausedAt: 0,
+      totalPaused: 0,
+      selectionKey: selectedValue,
+      duration: config.minutes * 60000,
+      config: config,
+      sessionArchived: false,
+      sessionAutoExported: false
+    };
+
+    // TRACKING: Record absolute start time for history logs
+    sessionStartTime = Date.now();
+
+    document.getElementById('pause-btn').disabled = false;
+    document.getElementById('reset-btn').disabled = false;
+    document.getElementById('minus-btn').disabled = false;
+    document.getElementById('plus-btn').disabled = false;
+    document.getElementById('timer-status').textContent = "Session Started";
+
+    // UI: Immediate initial update
+    updateTimerDisplay();
+
+    // LOOP: Start interval
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(updateTimerDisplay, 250); // 4fps update for performance/smoothness balance
+
+    // PERSISTENCE: Force save immediately to capture Active state
+    saveData();
+}
+
+/**
+ * Safely stops physics and re-renders the current class.
+ * Prevents "Zombie" simulation crashes during imports.
+ */
+function forceRefreshView() {
+  // 1. KILL PHYSICS (The Critical Fix)
+  // We must stop every running simulation loop immediately.
+  sims.forEach(sim => {
+    sim.running = false; // Stops the requestAnimationFrame loop
+  });
+  sims.clear(); // Detach references
+
+  // 2. CLEAR DOM
+  const cardList = document.getElementById('card-list');
+  if (cardList) {
+    cardList.innerHTML = '';
+    cardList.removeAttribute('style'); // Strip inline styles (Grid Fix)
+    cardList.classList.remove('group-pods-container', 'picker-layout');
+  }
+
+  // 3. RE-RENDER
+  // We add a tiny delay to ensure the browser garbage collects the old nodes
+  // and the physics loops have fully terminated.
+  setTimeout(() => {
+    renderClassTabs();
+
+    // Ensure we are in the correct view mode for data verification
+    if (currentAppState.viewMode !== 'individual') {
+      switchView('individual');
+    } else {
+      renderCurrentClass();
+    }
+
+    updateClock();
+  }, 10);
+}
+
+/**
+ * Switches the active class view.
+ * @param {number} index - The index of the class to switch to.
+ */
+function switchClass(index) {
+  if (index === currentClassIndex) return;
+
+  // SYNC: Auto-save current DOM state to memory before switching
+  saveData();
+
+  // CLEANUP: Stop physics simulations for current cards to prevent memory leaks
+  sims.forEach(sim => {
+    sim.running = false;
+  });
+  sims.clear();
+
+  currentClassIndex = index;
+  renderClassTabs();
+  renderCurrentClass();
+}
+
+/**
+ * Prompts user to create a new class.
+ */
+function createNewClass() {
+  const name = prompt("Enter Class Name:", "New Class");
+  if (!name) return;
+
+  saveData(); // Sync current state
+
+  const newClass = {
+    id: 'class-' + Date.now(),
+    name: name,
+    dailyNote: '',
+    students: []
+  };
+
+  classesData.push(newClass);
+  // ACTION: Switch immediately to new class
+  switchClass(classesData.length - 1);
+}
+
+/**
+ * Archives the current session state to history.
+ * Creates a snapshot of students, stars, and attendance.
+ * @param {string} reason - The trigger reason (e.g., 'Timer Complete').
+ */
+function archiveSession(reason) {
+  // SYNC: Ensure the in-memory data is up to date with DOM
+  saveData();
+
+  const activeClass = classesData[currentClassIndex];
+  if (!activeClass) return;
+
+  // SNAPSHOT: Create deep copy of current state
+  const now = new Date();
+  
+  // STATS: Calculate session metrics
+  let totalStars = 0;
+  let maxStars = -1;
+  let mvpName = "None";
+  let presentCount = 0;
+  let absentCount = 0;
+
+  const studentSnapshots = activeClass.students.map(s => {
+    // METRICS: Accumulate totals
+    totalStars += s.count;
+    
+    // LOGIC: Identify MVP (Highest Star Count)
+    if (s.count > maxStars) {
+      maxStars = s.count;
+      mvpName = s.name;
+    } else if (s.count === maxStars) {
+      mvpName += ", " + s.name; // Tie-breaker: list both
+    }
+
+    // ATTENDANCE: Count present/absent
+    // Why: Administrators need to know participation rates per session.
+    if (s.isAbsent) {
+      absentCount++;
+    } else {
+      presentCount++;
+    }
+
+    return {
+      name: s.name,
+      emoji: s.emoji,
+      count: s.count,
+      isAbsent: s.isAbsent
+    };
+  });
+
+  const totalStudents = presentCount + absentCount;
+  const attendanceStr = `${presentCount}/${totalStudents}`;
+
+  const snapshot = {
+    id: 'session-' + Date.now(),
+    date: now.toLocaleDateString(),
+    time: now.toLocaleTimeString(),
+    className: activeClass.name,
+    reason: reason,
+    stats: {
+      totalStars: totalStars,
+      mvp: mvpName,
+      attendance: attendanceStr
+    },
+    students: studentSnapshots
+  };
+
+  historyData.push(snapshot);
+
+  saveData(); // Persist history
+  showToast(`Session Archived: ${reason}`);
+}
+
+/**
+ * Increments star count for a student.
+ * @param {HTMLButtonElement} button - The clicked button.
+ */
+function addStarFor(button) {
+  const card = button.closest('.student-card');
+  const counter = card.querySelector('.count');
+  const counterWrapper = card.querySelector('.counter');
+  let c = parseInt(counter.textContent, 10) || 0;
+
+  c++;
+  counter.textContent = c;
+
+  // VISUAL: Check for debt status
+  if (c < 0) {
+    counterWrapper.classList.add('is-debt');
+  } else {
+    counterWrapper.classList.remove('is-debt');
+  }
+
+  // PHYSICS: Spawn a star
+  if (c > 0) {
+    getSim(card).createParticle(true);
+  }
+  
+  // UX: Highlight the last active card for visual tracking
+  highlightCard(card);
+  
+  // LEDGER
+  const nameEl = card.querySelector('.name-edit');
+  if (nameEl) logTransaction(nameEl.textContent, 'ADD');
+
+  saveData();
+}
+
+/**
+ * Decrements star count for a student.
+ * @param {HTMLButtonElement} button - The clicked button.
+ */
+function removeStarFor(button) {
+  const card = button.closest('.student-card');
+  const counter = card.querySelector('.count');
+  const counterWrapper = card.querySelector('.counter');
+  let c = parseInt(counter.textContent, 10) || 0;
+
+  const hadVisibleStar = c > 0;
+
+  c--;
+  counter.textContent = c;
+
+  // VISUAL: Debt styling
+  if (c < 0) {
+    counterWrapper.classList.add('is-debt');
+  } else {
+    counterWrapper.classList.remove('is-debt');
+  }
+
+  // PHYSICS: Remove a star
+  if (hadVisibleStar) {
+    getSim(card).removeLast();
+  }
+  
+  // UX: Highlight the last active card for visual tracking
+  highlightCard(card);
+
+  // LEDGER
+  const nameEl = card.querySelector('.name-edit');
+  if (nameEl) logTransaction(nameEl.textContent, 'REMOVE');
+
+  saveData();
+}
+
+/**
+ * Highlights a card as "Last Active".
+ * Visual indicator to track who participated most recently.
+ * @param {HTMLElement} card - The student card to highlight.
+ */
+function highlightCard(card) {
+  // Clear previous highlight
+  document.querySelectorAll('.student-card.last-active').forEach(c => {
+    c.classList.remove('last-active');
+  });
+  
+  // Set new highlight
+  if (card) {
+    card.classList.add('last-active');
+  }
+}
+
+/**
+ * Adds a new student to the current class.
+ */
+function addNewStudent() {
+  if (currentAppState.viewMode !== 'individual') {
+    showToast('Switch to Students tab to add a new student card.');
+    return;
+  }
+
+  const uniqueEmoji = getUniqueEmoji();
+  const card = createStudentCard('New Student', uniqueEmoji, 0, false);
+  const cardList = document.getElementById('card-list');
+  if (!cardList) return;
+  cardList.appendChild(card);
+
+  getSim(card); // Init physics
+  sortCardsAlphabetically();
+
+  // UX: Scroll to and focus the new card for immediate editing
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const nameEdit = card.querySelector('.name-edit');
+  setTimeout(() => {
+    if (nameEdit) nameEdit.focus();
+  }, 500);
+
+  saveData();
+}
+
+/**
+ * Resets star counts for all students in current class.
+ */
+function resetAllStars() {
+  const cardList = document.getElementById('card-list');
+  if (!cardList) return;
+  document.querySelectorAll('.student-card').forEach(card => {
+    resetStarsForCard(card);
+  });
+}
+
+/**
+ * Resets stars for a single card.
+ * @param {HTMLElement} card - The student card.
+ */
+function resetStarsForCard(card) {
+  const counter = card.querySelector('.count');
+  if (counter) {
+    counter.textContent = '0';
+  }
+  const area = card.querySelector('.stars-area');
+  if (area) {
+    while (area.firstChild) {
+      area.removeChild(area.firstChild);
+    }
+  }
+  const sim = sims.get(card);
+  if (sim) {
+    sim.particles = [];
+  }
+  saveData();
+}
+
+/**
+ * Removes a student card from the DOM and state.
+ * @param {HTMLElement} card - The student card to remove.
+ */
+function removeStudentCard(card) {
+  const sim = sims.get(card);
+  if (sim) {
+    sim.running = false;
+    sims.delete(card);
+  }
+  if (card.parentElement) {
+    card.parentElement.removeChild(card);
+  }
+  saveData();
+}
+
+/**
+ * Toggles the absent state of a student.
+ * @param {HTMLElement} card - The student card.
+ * @param {boolean} isAbsent - The new absent state.
+ */
+function setCardAbsent(card, isAbsent) {
+  card.classList.toggle('is-absent', isAbsent);
+  // UX: Disable controls if absent
+  const controls = card.querySelectorAll('.controls button');
+  controls.forEach(btn => {
+    btn.style.pointerEvents = isAbsent ? 'none' : '';
+  });
+  // MENU: Update toggle text
+  const attendanceItem = card.querySelector('.card-menu-attendance');
+  if (attendanceItem) {
+    attendanceItem.textContent = isAbsent ? '✅ Mark Present' : '🚫 Mark Absent';
+  }
+}
+
+/* ========================================= */
+/* REGION: UI RENDERING                */
+/* ========================================= */
+
+/**
+ * Updates the live clock and date display in the sidebar.
+ */
+function updateClock() {
+  const clockEl = document.getElementById('live-clock');
+  const dateEl = document.getElementById('live-date');
+  
+  // SAFETY CHECK: Elements might not exist if sidebar was modified
+  if (!clockEl || !dateEl) return;
+
+  const now = new Date();
+  // FORMAT: Display time as HH:MM AM/PM
+  const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // FORMAT: Display date as Weekday, Month Day
+  const dateString = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+
+  clockEl.textContent = timeString;
+  dateEl.textContent = dateString;
+}
+
+/**
+ * Creates a student card DOM element.
+ * @param {string} name - Student name.
+ * @param {string} emoji - Student emoji.
+ * @param {number} count - Star count.
+ * @param {boolean} isAbsent - Attendance status.
+ * @returns {HTMLElement} The card element.
+ */
+function createStudentCard(name, emoji, count, isAbsent) {
+  const div = document.createElement('div');
+  div.className = 'student-card';
+  const safeName = typeof name === 'string' && name.length ? name : 'New Student';
+  const safeEmoji = typeof emoji === 'string' && emoji.length ? emoji : '⭐';
+  const safeCount = typeof count === 'number' ? count : 0;
+
+  const isDebt = safeCount < 0 ? 'is-debt' : '';
+
+  div.innerHTML = `
+    <div class="row">
+      <div class="student-name">
+        <span class="name-edit" contenteditable="true" spellcheck="false" onkeydown="blurOnEnter(event)">${safeName}</span> 
+        <span style="font-size:1.4em">${safeEmoji}</span>
+      </div>
+      <div class="counter ${isDebt}" aria-live="polite"><span class="count">${safeCount}</span> <span>⭐</span></div>
+    </div>
+    <div class="stars-area"></div>
+    <div class="controls">
+      <button class="add" onclick="addStarFor(this)">+ Add</button>
+      <button class="remove" onclick="removeStarFor(this)">- Remove</button>
+    </div>
+  `;
+
+  // INIT: Attach menus and handlers
+  ensureCardMenu(div);
+  attachNameEditHandlers(div);
+  if (isAbsent) {
+    setCardAbsent(div, true);
+  }
+  return div;
+}
+
+/**
+ * Renders the class selection tabs.
+ */
+function renderClassTabs() {
+  const container = document.getElementById('class-tabs');
+  if (!container) return;
+  container.innerHTML = '';
+
+  classesData.forEach((cls, idx) => {
+    const btn = document.createElement('div');
+    btn.className = `class-tab ${idx === currentClassIndex ? 'active' : ''}`;
+    btn.textContent = cls.name;
+    btn.onclick = () => switchClass(idx);
+    
+    // RENAMING: Double-click to edit
+    btn.ondblclick = (e) => {
+        e.stopPropagation(); // Prevent switching logic
+
+        // 1. Create Input
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = cls.name;
+        input.className = 'tab-edit-input'; 
+        input.style.width = '80px';
+        input.style.border = 'none';
+        input.style.borderRadius = '4px';
+        input.style.padding = '2px';
+
+        // 2. Handle Save
+        const save = () => {
+            if (input.value.trim() !== "") {
+                classesData[idx].name = input.value.trim();
+                saveData();
+                renderClassTabs(); // Re-render to show text again
+            }
+        };
+
+        // 3. Events
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') {
+                input.blur(); // Triggers save
+            }
+        });
+
+        // 4. Swap Text for Input
+        btn.textContent = '';
+        btn.appendChild(input);
+        input.focus();
+    };
+
+    container.appendChild(btn);
+  });
+
+  const addBtn = document.getElementById('add-class-btn');
+  if (addBtn) {
+    addBtn.onclick = createNewClass;
+  }
+}
+
+/**
+ * Renders the students and notes for the currently active class.
+ */
+function renderCurrentClass() {
+  const cardList = document.getElementById('card-list');
+  const agendaEl = document.querySelector('.agenda-content');
+  if (!cardList) return;
+
+  cardList.innerHTML = '';
+  
+  // RESET LAYOUT: Ensure we don't have leftover grid classes if switching back
+  if (currentAppState.viewMode === 'individual') {
+      cardList.classList.remove('group-pods-container');
+      cardList.classList.remove('picker-layout');
+
+      // CRITICAL FIX: Strip inline styles added by Group View
+      // This allows the CSS 'repeat(auto-fill, 380px)' to work again
+      cardList.removeAttribute('style');
+  }
+
+  const cls = classesData[currentClassIndex];
+  if (!cls) return;
+
+  if (agendaEl) {
+    agendaEl.value = cls.dailyNote || '';
+  }
+
+  // DISPATCH: Render based on View Mode
+  if (currentAppState.viewMode === 'group') {
+      renderGroupView();
+      return; 
+  }
+  
+  if (currentAppState.viewMode === 'picker') {
+      renderPickerView();
+      return;
+  }
+
+  // INDIVIDUAL VIEW RENDER LOGIC
+  if (Array.isArray(cls.students)) {
+    cls.students.forEach(s => {
+      const card = createStudentCard(s.name, s.emoji, s.count, s.isAbsent);
+      cardList.appendChild(card);
+      // PHYSICS: Init sim
+      getSim(card);
+      ensureCardMenu(card);
+    });
+  }
+
+  normalizeCardLayout();
+}
+
+/**
+ * Renders the history list in the modal with advanced visualization.
+ * Includes trend analysis ("Velocity" engine), filtering, and interactive stats.
+ */
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const filterSelect = document.getElementById('history-filter');
+  
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (historyData.length === 0) {
+    list.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">No history recorded yet.</div>';
+    return;
+  }
+
+  // FILTER LOGIC: Populate dropdown with unique class names
+  // Why: Users need to focus on one class's history at a time.
+  if (filterSelect) {
+    const currentSelection = filterSelect.value;
+    const uniqueClasses = [...new Set(historyData.map(h => h.className))].sort();
+    
+    // Clear and rebuild options (keeping "All Classes")
+    filterSelect.innerHTML = '<option value="all">All Classes</option>';
+    uniqueClasses.forEach(clsName => {
+      const opt = document.createElement('option');
+      opt.value = clsName;
+      opt.textContent = clsName;
+      filterSelect.appendChild(opt);
+    });
+
+    // Restore selection or default to 'all'
+    // If the previously selected class no longer exists (unlikely), it falls back to 'all'
+    if (uniqueClasses.includes(currentSelection)) {
+        filterSelect.value = currentSelection;
+    } else {
+        filterSelect.value = 'all';
+    }
+
+    // EVENT: Add listener only once (using a custom property to track)
+    if (!filterSelect.hasAttribute('data-listener-attached')) {
+      filterSelect.addEventListener('change', () => {
+        // RE-RENDER: Check which view is active and render accordingly
+        const lbView = document.getElementById('leaderboard-view');
+        if (lbView && lbView.style.display !== 'none') {
+            renderLeaderboard();
+        } else {
+            renderHistory();
+        }
+      });
+      filterSelect.setAttribute('data-listener-attached', 'true');
+    }
+  }
+
+  // FILTER: Apply the selected filter
+  const filterValue = filterSelect ? filterSelect.value : 'all';
+  let filteredData = historyData;
+  if (filterValue !== 'all') {
+    filteredData = historyData.filter(h => h.className === filterValue);
+  }
+
+  // SORT: Newest first (Timestamp Descending)
+  const sorted = [...filteredData].sort((a, b) => {
+    // Extract timestamp from ID 'session-123456789'
+    const timeA = parseInt(a.id.split('-')[1]);
+    const timeB = parseInt(b.id.split('-')[1]);
+    return timeB - timeA;
+  });
+
+  if (sorted.length === 0) {
+     list.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">No history for this class.</div>';
+     return;
+  }
+
+  // VELOCITY ENGINE: Calculate trends
+  // Why: Teachers need to know if a student is improving or sliding compared to the previous session.
+  // We map previous stars by Student Name for the *chronologically previous* session of the SAME CLASS.
+  
+  // Helper to find previous session for a specific class
+  const getPreviousSession = (currentEntry, allHistory) => {
+    // 1. Filter for same class
+    const sameClassHistory = allHistory.filter(h => h.className === currentEntry.className);
+    // 2. Sort by time descending
+    sameClassHistory.sort((a, b) => parseInt(b.id.split('-')[1]) - parseInt(a.id.split('-')[1]));
+    // 3. Find current index
+    const currentIndex = sameClassHistory.findIndex(h => h.id === currentEntry.id);
+    // 4. Return the next item (which is older), or null
+    return currentIndex !== -1 && currentIndex < sameClassHistory.length - 1 
+      ? sameClassHistory[currentIndex + 1] 
+      : null;
+  };
+
+  sorted.forEach(entry => {
+    // TREND: Find the previous session for comparison
+    const previousSession = getPreviousSession(entry, historyData);
+    const previousStarsMap = new Map();
+    
+    if (previousSession) {
+        previousSession.students.forEach(s => previousStarsMap.set(s.name, s.count));
+    }
+
+    // VISUALIZATION: Normalize bars against the session's highest performer
+    // Why: Absolute numbers vary by session length. Relative performance (0-100%) is more meaningful visually.
+    let maxStars = 0;
+    entry.students.forEach(s => {
+      if (s.count > maxStars) maxStars = s.count;
+    });
+
+    const entryEl = document.createElement('div');
+    entryEl.className = 'history-entry';
+    entryEl.id = `history-entry-${entry.id}`;
+
+    // HEADER: Meta data and Action Buttons
+    const meta = document.createElement('div');
+    meta.className = 'history-meta';
+    meta.innerHTML = `
+      <div>
+        <span style="font-weight:700; color:#333;">${entry.date}</span> 
+        <span style="margin: 0 6px; color:#ccc;">|</span> 
+        <span>${entry.time}</span>
+        <span style="margin: 0 6px; color:#ccc;">|</span> 
+        <span style="font-weight:600;">${entry.className}</span>
+      </div>
+      <div class="history-actions" id="actions-${entry.id}">
+         <span class="history-reason" id="reason-${entry.id}">${entry.reason}</span>
+         <button class="history-action-btn" id="edit-btn-${entry.id}" onclick="toggleHistoryEdit('${entry.id}')" title="Edit Session">✏️</button>
+         <button class="history-action-btn" onclick="exportHistoryCard('${entry.id}')" title="Export Snapshot">📷</button>
+         <button class="history-action-btn" onclick="deleteHistoryEntry('${entry.id}')" title="Delete Entry">🗑️</button>
+      </div>
+    `;
+    entryEl.appendChild(meta);
+
+    // STATS BADGES
+    const stats = document.createElement('div');
+    stats.className = 'history-stats';
+    // Fallback for old data without stats object
+    const attendance = entry.stats ? entry.stats.attendance : 'N/A';
+    const totalStars = entry.stats ? entry.stats.totalStars : entry.students.reduce((a, b) => a + b.count, 0);
+    
+    stats.innerHTML = `
+      <div class="stat-tag">👥 Attendance: ${attendance}</div>
+      <div class="stat-tag">⭐ Total Stars: ${totalStars}</div>
+    `;
+    entryEl.appendChild(stats);
+
+    // GRAPH CONTAINER
+    const graph = document.createElement('div');
+    graph.className = 'history-graph';
+    graph.style.marginTop = "12px";
+
+    entry.students.forEach(s => {
+      const row = document.createElement('div');
+      // STYLE: Apply absent styling if needed
+      // Why: Absent students should be visually deprioritized but still visible for record-keeping.
+      row.className = `history-row ${s.isAbsent ? 'absent' : ''}`;
+
+      const pct = maxStars > 0 ? (s.count / maxStars) * 100 : 0;
+      const isMVP = s.count === maxStars && s.count > 0;
+      
+      // TREND LOGIC: Compare with previous session
+      let trendHtml = '';
+      if (previousSession && !s.isAbsent) {
+          const prevCount = previousStarsMap.get(s.name);
+          if (prevCount !== undefined) {
+              if (s.count > prevCount) {
+                  trendHtml = '<span class="trend-icon trend-up" title="Improved">↗</span>';
+              } else if (s.count < prevCount) {
+                  trendHtml = '<span class="trend-icon trend-down" title="Declined">↘</span>';
+              }
+          }
+      }
+
+      row.innerHTML = `
+        <div class="history-student-info">
+          <span>${s.emoji}</span> 
+          <span style="margin-left:4px;">${s.name}</span>
+          ${isMVP ? '<span class="mvp-icon" title="Session MVP">🏆</span>' : ''}
+        </div>
+        <div class="history-bar-container">
+          ${!s.isAbsent ? `<div class="history-bar-fill" style="width: ${pct}%"></div>` : ''}
+        </div>
+        <div class="history-count">
+            ${s.count}
+            ${trendHtml}
+        </div>
+      `;
+      graph.appendChild(row);
+    });
+
+    entryEl.appendChild(graph);
+    list.appendChild(entryEl);
+  });
+}
+
+/**
+ * Toggles the history card between View and Edit mode.
+ * @param {string} sessionId - The unique ID of the session.
+ */
+function toggleHistoryEdit(sessionId) {
+  const entryEl = document.getElementById(`history-entry-${sessionId}`);
+  if (!entryEl) return;
+
+  const btn = document.getElementById(`edit-btn-${sessionId}`);
+  const isEditing = entryEl.classList.contains('is-editing');
+
+  if (!isEditing) {
+    // SWITCH TO EDIT MODE
+    entryEl.classList.add('is-editing');
+    btn.textContent = '💾';
+    btn.classList.add('save-btn');
+    btn.title = 'Save Changes';
+
+    // 1. Convert Reason to Input
+    const reasonEl = document.getElementById(`reason-${sessionId}`);
+    const currentReason = reasonEl.textContent;
+    reasonEl.innerHTML = `<input type="text" class="edit-reason-input" id="input-reason-${sessionId}" value="${currentReason}">`;
+
+    // 2. Convert Star Counts to Inputs
+    const counts = entryEl.querySelectorAll('.history-count');
+    counts.forEach(countDiv => {
+      // Logic: Extract just the number, ignore the trend icon
+      const currentVal = parseInt(countDiv.childNodes[0].nodeValue.trim());
+      // Store student name in data attribute to map back later. 
+      // We need to find the name from the sibling element.
+      const row = countDiv.closest('.history-row');
+      const nameEl = row.querySelector('.history-student-info span:nth-child(2)'); // 2nd span is name
+      const studentName = nameEl.textContent.trim();
+      
+      countDiv.innerHTML = `<input type="number" class="edit-count-input" data-student="${studentName}" value="${currentVal}" min="0">`;
+    });
+
+  } else {
+    // SAVE CHANGES
+    const sessionIndex = historyData.findIndex(h => h.id === sessionId);
+    if (sessionIndex === -1) return;
+
+    // 1. Get New Reason
+    const reasonInput = document.getElementById(`input-reason-${sessionId}`);
+    const newReason = reasonInput ? reasonInput.value : historyData[sessionIndex].reason;
+    historyData[sessionIndex].reason = newReason;
+
+    // 2. Get New Star Counts
+    const inputs = entryEl.querySelectorAll('.edit-count-input');
+    inputs.forEach(input => {
+      const studentName = input.dataset.student;
+      const newCount = parseInt(input.value) || 0;
+      
+      const studentObj = historyData[sessionIndex].students.find(s => s.name === studentName);
+      if (studentObj) {
+        studentObj.count = newCount;
+      }
+    });
+
+    // 3. Recalculate Stats (Total, MVP, Attendance)
+    let totalStars = 0;
+    let maxStars = -1;
+    let mvpName = "None";
+    let presentCount = 0;
+    let absentCount = 0;
+
+    historyData[sessionIndex].students.forEach(s => {
+      totalStars += s.count;
+      if (s.count > maxStars) {
+        maxStars = s.count;
+        mvpName = s.name;
+      } else if (s.count === maxStars) {
+        mvpName += ", " + s.name;
+      }
+
+      if (s.isAbsent) absentCount++; else presentCount++;
+    });
+
+    const totalStudents = presentCount + absentCount;
+    historyData[sessionIndex].stats = {
+      totalStars: totalStars,
+      mvp: mvpName,
+      attendance: `${presentCount}/${totalStudents}`
+    };
+
+    // 4. Persist and Re-render
+    saveData();
+    renderHistory();
+    showToast('Session updated successfully');
+  }
+}
+
+/**
+ * Exports a history card as an image.
+ * Uses html2canvas to capture the visual state.
+ * @param {string} sessionId - The unique ID of the session.
+ */
+function exportHistoryCard(sessionId) {
+  const entryEl = document.getElementById(`history-entry-${sessionId}`);
+  if (!entryEl) return;
+
+  // CLEANUP: Hide actions for screenshot
+  const actions = document.getElementById(`actions-${sessionId}`);
+  if (actions) actions.style.display = 'none';
+
+  // LOGIC: Capture
+  // Why: We use html2canvas because it can render DOM to Canvas to Image client-side.
+  if (window.html2canvas) {
+    html2canvas(entryEl, {
+      backgroundColor: '#ffffff',
+      scale: 2 // High resolution
+    }).then(canvas => {
+      // RESTORE: Show actions again
+      if (actions) actions.style.display = 'flex';
+
+      // TRIGGER DOWNLOAD
+      const link = document.createElement('a');
+      const session = historyData.find(h => h.id === sessionId);
+      const dateStr = session ? session.date.replace(/\//g, '-') : 'snapshot';
+      link.download = `Session_${dateStr}_${sessionId}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+      showToast('Snapshot exported!');
+    }).catch(err => {
+      if (actions) actions.style.display = 'flex';
+      console.error(err);
+      showToast('Export failed.');
+    });
+  } else {
+    if (actions) actions.style.display = 'flex';
+    alert('Export library not loaded. Please check internet connection.');
+  }
+}
+
+/**
+ * Deletes a history entry.
+ * @param {string} sessionId - The unique ID of the session.
+ */
+function deleteHistoryEntry(sessionId) {
+  if (!confirm("Are you sure you want to delete this session record?")) return;
+
+  historyData = historyData.filter(h => h.id !== sessionId);
+  saveData();
+  renderHistory();
+  showToast('Session deleted.');
+}
+
+/* ========================================= */
+/* REGION: LEADERBOARD ANALYTICS (PHASE 4) */
+/* ========================================= */
+
+/**
+ * Switches between History List and Leaderboard View in the modal.
+ * @param {string} view - 'sessions' or 'leaderboard'
+ */
+function switchHistoryView(view) {
+    const list = document.getElementById('history-list');
+    const lb = document.getElementById('leaderboard-view');
+    const btnSessions = document.getElementById('h-btn-sessions');
+    const btnLb = document.getElementById('h-btn-leaderboard');
+    const filter = document.getElementById('history-filter');
+
+    if (view === 'leaderboard') {
+        list.style.display = 'none';
+        lb.style.display = 'block';
+        btnSessions.classList.remove('active');
+        btnLb.classList.add('active');
+        // Hide filter for leaderboard? Or use it?
+        // Let's use it to filter leaderboard by class!
+        renderLeaderboard();
+    } else {
+        list.style.display = 'flex';
+        lb.style.display = 'none';
+        btnSessions.classList.add('active');
+        btnLb.classList.remove('active');
+    }
+}
+
+/**
+ * Aggregates and renders student performance statistics.
+ * LOGIC: Loops through all history entries (filtered by class) and sums up stars.
+ */
+function renderLeaderboard() {
+    const container = document.getElementById('leaderboard-list');
+    const filterSelect = document.getElementById('history-filter');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // 1. Filter Data
+    const filterValue = filterSelect ? filterSelect.value : 'all';
+    let dataToProcess = historyData;
+    if (filterValue !== 'all') {
+        dataToProcess = historyData.filter(h => h.className === filterValue);
+    }
+    
+    if (dataToProcess.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">No data available for leaderboard.</div>';
+        return;
+    }
+    
+    // 2. Aggregate Stats
+    // Map: Name -> { emoji, totalStars, sessionsCount }
+    const statsMap = new Map();
+    
+    dataToProcess.forEach(session => {
+        if (session.students && Array.isArray(session.students)) {
+            session.students.forEach(s => {
+                // Key by name (and emoji to be safe? mostly name)
+                const key = s.name;
+                if (!statsMap.has(key)) {
+                    statsMap.set(key, { 
+                        name: s.name, 
+                        emoji: s.emoji, 
+                        totalStars: 0, 
+                        sessions: 0 
+                    });
+                }
+                
+                const entry = statsMap.get(key);
+                // Only count present students? Or all?
+                // Let's count stars regardless.
+                entry.totalStars += (s.count || 0);
+                if (!s.isAbsent) entry.sessions++;
+                
+                // Update emoji if changed (take latest)
+                entry.emoji = s.emoji; 
+            });
+        }
+    });
+    
+    // 3. Convert to Array and Sort
+    const leaderboard = Array.from(statsMap.values()).sort((a, b) => b.totalStars - a.totalStars);
+    
+    // 4. Render
+    leaderboard.forEach((student, index) => {
+        const rank = index + 1;
+        const avg = student.sessions > 0 ? (student.totalStars / student.sessions).toFixed(1) : '0.0';
+        
+        const card = document.createElement('div');
+        card.className = `lb-card rank-${rank}`;
+        if (rank > 3) card.className = 'lb-card'; // Plain for others
+        
+        card.innerHTML = `
+            <div class="lb-rank">#${rank}</div>
+            <div class="lb-emoji">${student.emoji}</div>
+            <div class="lb-name">${student.name}</div>
+            <div class="lb-stat">
+                <span class="lb-val">${student.totalStars}</span>
+                <span class="lb-label">Total</span>
+            </div>
+            <div class="lb-stat">
+                <span class="lb-val">${avg}</span>
+                <span class="lb-label">Avg/Ses</span>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+/**
+ * Adds a manual session entry ("Blank Slate").
+ * Allows users to record past sessions they missed.
+ */
+function addManualSession() {
+  const activeClass = classesData[currentClassIndex];
+  if (!activeClass) return;
+
+  // 1. Create Blank Session
+  // Why: We copy students to ensure the list matches the current roster, but reset counts to 0.
+  const now = new Date();
+  const studentSnapshots = activeClass.students.map(s => ({
+    name: s.name,
+    emoji: s.emoji,
+    count: 0, // Reset for manual entry
+    isAbsent: false
+  }));
+
+  const newId = 'session-' + Date.now();
+  const newSession = {
+    id: newId,
+    date: now.toLocaleDateString(),
+    time: now.toLocaleTimeString(),
+    className: activeClass.name,
+    reason: 'Manual Entry',
+    stats: {
+      totalStars: 0,
+      mvp: 'None',
+      attendance: `${studentSnapshots.length}/${studentSnapshots.length}`
+    },
+    students: studentSnapshots
+  };
+
+  // 2. Add to History
+  historyData.unshift(newSession); // Add to top since we sort by newest anyway, but this is immediate
+  saveData();
+
+  // 3. Render and Enter Edit Mode
+  renderHistory();
+  
+  // UX: Auto-focus the edit mode so user knows what to do
+  setTimeout(() => {
+    toggleHistoryEdit(newId);
+    // Scroll to top of list
+    const list = document.getElementById('history-list');
+    if (list) list.scrollTop = 0;
+  }, 100);
+}
+
+/**
+ * Opens the history modal dialog.
+ */
+function openHistoryModal() {
+  const modal = document.getElementById('history-modal');
+  if (!modal) return;
+  renderHistory();
+  modal.showModal();
+}
+
+/**
+ * Closes the history modal dialog.
+ */
+function closeHistoryModal() {
+  const modal = document.getElementById('history-modal');
+  if (modal) modal.close();
+}
+
+/**
+ * Sorts student cards alphabetically by name.
+ */
+function sortCardsAlphabetically() {
+  const cardList = document.getElementById('card-list');
+  if (!cardList) return;
+
+  const cards = Array.from(cardList.querySelectorAll('.student-card'));
+
+  cards.sort((a, b) => {
+    const nameAEl = a.querySelector('.name-edit');
+    const nameBEl = b.querySelector('.name-edit');
+    const nameA = nameAEl ? (nameAEl.textContent || '').trim() : '';
+    const nameB = nameBEl ? (nameBEl.textContent || '').trim() : '';
+    return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+  });
+
+  cards.forEach(card => {
+    cardList.appendChild(card);
+  });
+}
+
+/* ========================================= */
+/* REGION: EVENT HANDLERS              */
+/* ========================================= */
+
+/**
+ * Blur the input element when the Enter key is pressed.
+ * @param {KeyboardEvent} event - The keydown event.
+ */
+function blurOnEnter(event) {
+  // UX DECISION: We treat the 'Enter' key as a confirmation action rather than a newline.
+  // By preventing the default behavior, we stop the contenteditable element from growing vertically.
+  // Blurring the element triggers the 'blur' event, which saves the data.
+  if(event.key === 'Enter') {
+    event.preventDefault();
+    event.target.blur();
+  }
+}
+
+/**
+ * Handles profile image upload and preview.
+ * @param {Event} event - The file input change event.
+ */
+function loadProfileImage(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('profile-img').src = e.target.result;
+      saveData();
+    }
+    reader.readAsDataURL(file);
+  }
+}
+
+/**
+ * Stores the original name on focus for later comparison.
+ * @param {FocusEvent} event
+ */
+function handleNameEditFocus(event) {
+  const el = event.target;
+  el.dataset.original = el.innerText;
+}
+
+/**
+ * Handles name edit blur event. Sorts if name changed.
+ * @param {FocusEvent} event
+ */
+function handleNameEditBlur(event) {
+  const el = event.target;
+  // OPTIMIZATION: Only re-sort if the name actually changed to avoid unnecessary DOM reflows.
+  if (typeof el.dataset.original === 'string' && el.dataset.original === el.innerText) {
+    return;
+  }
+  sortCardsAlphabetically();
+  saveData();
+}
+
+/**
+ * Attaches focus/blur listeners to a name edit field.
+ * @param {HTMLElement} card
+ */
+function attachNameEditHandlers(card) {
+  const nameEdit = card.querySelector('.name-edit');
+  if (!nameEdit || nameEdit.__hasNameHandlers) return;
+  nameEdit.__hasNameHandlers = true;
+  nameEdit.addEventListener('focus', handleNameEditFocus);
+  nameEdit.addEventListener('blur', handleNameEditBlur);
+}
+
+/**
+ * Closes the currently open card menu dropdown.
+ */
+function closeOpenCardMenu() {
+  if (!openCardMenu) return;
+  openCardMenu.dropdown.classList.remove('open');
+  openCardMenu.button.setAttribute('aria-expanded', 'false');
+  openCardMenu = null;
+}
+
+/**
+ * Attaches click handlers to a card's menu button and items.
+ * @param {HTMLElement} card
+ */
+function attachCardMenuHandlers(card) {
+  if (card.__hasMenuHandlers) return;
+  const menuBtn = card.querySelector('.card-menu-btn');
+  const dropdown = card.querySelector('.card-menu-dropdown');
+  const removeItem = card.querySelector('.card-menu-remove');
+  const resetItem = card.querySelector('.card-menu-reset');
+  const attendanceItem = card.querySelector('.card-menu-attendance');
+  if (!menuBtn || !dropdown) return;
+
+  menuBtn.addEventListener('click', event => {
+    event.stopPropagation();
+    if (openCardMenu && openCardMenu.dropdown === dropdown) {
+      closeOpenCardMenu();
+      return;
+    }
+    closeOpenCardMenu();
+    dropdown.classList.add('open');
+    menuBtn.setAttribute('aria-expanded', 'true');
+    openCardMenu = { card, dropdown, button: menuBtn };
+  });
+
+  dropdown.addEventListener('click', event => {
+    event.stopPropagation();
+  });
+
+  if (removeItem) {
+    removeItem.addEventListener('click', () => {
+      closeOpenCardMenu();
+      removeStudentCard(card);
+    });
+  }
+
+  if (resetItem) {
+    resetItem.addEventListener('click', () => {
+      closeOpenCardMenu();
+      resetStarsForCard(card);
+    });
+  }
+
+  if (attendanceItem) {
+    attendanceItem.addEventListener('click', () => {
+      const nextAbsent = !card.classList.contains('is-absent');
+      setCardAbsent(card, nextAbsent);
+      saveData();
+      closeOpenCardMenu();
+    });
+  }
+
+  card.__hasMenuHandlers = true;
+}
+
+/**
+ * Ensures the card menu HTML exists and attaches handlers.
+ * @param {HTMLElement} card
+ */
+function ensureCardMenu(card) {
+  const row = card.querySelector('.row');
+  if (!row) return;
+
+  let wrapper = card.querySelector('.card-menu');
+  if (!wrapper) {
+    wrapper = document.createElement('div');
+    wrapper.className = 'card-menu';
+    wrapper.innerHTML = `
+      <button class="card-menu-btn" type="button" aria-haspopup="true" aria-expanded="false">⋮</button>
+      <div class="card-menu-dropdown" role="menu">
+        <button type="button" class="card-menu-item card-menu-remove">🗑️ Remove Student</button>
+        <button type="button" class="card-menu-item card-menu-reset">🔄 Reset Stars</button>
+        <button type="button" class="card-menu-item card-menu-attendance">🚫 Mark Absent</button>
+      </div>
+    `;
+  }
+
+  if (wrapper.parentElement !== row) {
+    row.appendChild(wrapper);
+  }
+
+  attachCardMenuHandlers(card);
+}
+
+// GLOBAL EVENT: Close menus when clicking outside
+document.addEventListener('click', () => {
+  closeOpenCardMenu();
+});
+
+// GLOBAL EVENT: Close menus on Escape key
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    closeOpenCardMenu();
+  }
+});
+
+/**
+ * Initializes the 3D Gatekeeper (Welcome + Security).
+ */
+function initGatekeeper() {
+  const overlay = document.getElementById('gatekeeper-overlay');
+  const card = document.getElementById('gatekeeper-card');
+  const pinInput = document.getElementById('gate-pin-input');
+  const durationSelect = document.getElementById('gate-duration-select');
+  const mainTimerSelect = document.getElementById('duration-select');
+  const avatar = document.getElementById('gate-avatar');
+  const titleBack = document.getElementById('gate-title-back');
+  
+  if (!overlay || !card) return;
+
+  // 1. SYNC: Load User Profile Data
+  const profileNameEl = document.querySelector('.profile-name');
+  const profileImgEl = document.getElementById('profile-img');
+  
+  if (avatar && profileImgEl) {
+    avatar.src = profileImgEl.src;
+  }
+  
+  // Greeting Logic
+  const now = new Date();
+  const hour = now.getHours();
+  let greeting = 'Good Evening';
+  if (hour < 12) greeting = 'Good Morning';
+  else if (hour < 18) greeting = 'Good Afternoon';
+  
+  const name = profileNameEl ? profileNameEl.textContent.trim() : 'Teacher';
+  if (titleBack) titleBack.textContent = `${greeting}, ${name}`;
+
+  // 2. SYNC: Populate Duration Select from Main Timer
+  if (durationSelect && mainTimerSelect) {
+    durationSelect.innerHTML = ''; // Clear
+    Array.from(mainTimerSelect.options).forEach(opt => {
+      const clone = document.createElement('option');
+      clone.value = opt.value;
+      clone.textContent = opt.textContent;
+      clone.disabled = opt.disabled;
+      clone.selected = opt.selected;
+      durationSelect.appendChild(clone);
+    });
+    // Set initial value
+    durationSelect.value = mainTimerSelect.value;
+  }
+
+  // 3. STARTUP CHECK: Determine Initial Face
+  const storedPin = localStorage.getItem('sprout_security_pin');
+  
+  // UI Elements
+  const title = document.getElementById('gate-title-front');
+  const subtitle = document.querySelector('.gate-subtitle');
+  const btn = document.getElementById('gate-unlock-btn');
+
+  if (storedPin) {
+    // SCENARIO A: Standard Login
+    card.classList.remove('is-flipped');
+    if (title) title.textContent = "Security Gate";
+    if (subtitle) subtitle.textContent = "Enter PIN to access dashboard";
+    if (btn) btn.textContent = "Unlock Dashboard";
+    if (pinInput) pinInput.focus();
+  } else {
+    // SCENARIO B: First Run (Create PIN)
+    // CRITICAL: Ensure we are NOT flipped
+    card.classList.remove('is-flipped');
+
+    // Update Text to guide user
+    if (title) title.textContent = "Welcome Teacher";
+    if (subtitle) subtitle.textContent = "Create a 4-digit PIN to secure your class.";
+    if (btn) btn.textContent = "Set PIN & Start";
+
+    if (pinInput) pinInput.focus();
+  }
+  
+  // Ensure overlay is visible on load (it has .visible by default in HTML, but logic might toggle it)
+  overlay.classList.add('visible');
+  document.body.classList.add('welcome-active');
+  
+  // EVENT: Enter Key Handling
+  pinInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') attemptUnlock();
+  });
+  
+  // EVENT: Unlock Button
+  window.attemptUnlock = function() {
+    const pinInput = document.getElementById('gate-pin-input');
+    const enteredPin = pinInput.value;
+    const storedPin = localStorage.getItem('sprout_security_pin');
+    const errorEl = document.getElementById('gate-error-front');
+
+    // 1. PIN CREATION MODE (If no PIN exists)
+    if (!storedPin) {
+      if (enteredPin.length < 4) {
+        if (errorEl) errorEl.textContent = "PIN must be at least 4 digits.";
+        // Shake animation logic
+        pinInput.classList.add('shake-anim');
+        setTimeout(() => pinInput.classList.remove('shake-anim'), 500);
+        return;
+      }
+
+      // SAVE THE PIN
+      localStorage.setItem('sprout_security_pin', enteredPin);
+      showToast("Security PIN Set!");
+
+      // Proceed to Setup
+      // We mimic a successful unlock flow here
+      // Clear inputs and error
+      pinInput.value = '';
+      if (errorEl) errorEl.textContent = '';
+
+      // Flip to Session Setup (Side B)
+      const card = document.getElementById('gatekeeper-card');
+      card.classList.add('is-flipped');
+      setTimeout(() => {
+        const ds = document.getElementById('gate-duration-select');
+        if(ds) ds.focus();
+      }, 400);
+      return;
+    }
+
+    // 2. STANDARD UNLOCK MODE (Existing Logic)
+    if (enteredPin === storedPin) {
+      // 1. CLEAR ERROR
+      if (errorEl) errorEl.textContent = '';
+      pinInput.value = ''; // Clear for security
+
+      // DEBUG: Verify State
+      console.log('Timer Active:', timerState.active);
+
+      // 2. CHECK ACTIVE SESSION (The Priority Check)
+      // If a session was restored by loadData(), we MUST unlock and STOP here.
+      if (timerState.active) {
+        console.log("🔓 Active Session Detected. Unlocking...");
+        hideGatekeeper();
+        showToast('Welcome back!');
+        return; // <--- CRITICAL: STOP EXECUTION HERE. DO NOT PROCEED TO FLIP.
+      }
+
+      // 3. FLIP TO SETUP (The Fallback)
+      // Only reachable if timerState.active is false
+      const card = document.getElementById('gatekeeper-card');
+      if (card) card.classList.add('is-flipped');
+      
+      // Focus "Start" button for speed
+      const durationSelect = document.getElementById('gate-duration-select');
+      setTimeout(() => {
+        if(durationSelect) durationSelect.focus();
+      }, 400);
+    } else {
+      // FAIL
+      if (errorEl) errorEl.textContent = 'Incorrect PIN';
+      pinInput.classList.add('shake-anim'); // We need to add this CSS or just wobble
+      setTimeout(() => pinInput.classList.remove('shake-anim'), 500);
+      
+      // FAILURE ANIMATION
+      const card = document.getElementById('gatekeeper-card');
+      if (card && card.animate) {
+          card.animate([
+            { transform: 'translateX(0)' },
+            { transform: 'translateX(-10px)' },
+            { transform: 'translateX(10px)' },
+            { transform: 'translateX(0)' }
+          ], { duration: 300 });
+      }
+      pinInput.value = '';
+      pinInput.focus();
+    }
+  };
+  
+  // EVENT: Start Session Button
+  window.startSession = function() {
+    const errorEl = document.getElementById('gate-error-back');
+    const gateSelect = document.getElementById('gate-duration-select');
+    const mainSelect = document.getElementById('duration-select');
+    const val = gateSelect ? gateSelect.value : '';
+    
+    if (!val) {
+      if (errorEl) errorEl.textContent = 'Please select a duration.';
+      return;
+    }
+    
+    if (mainSelect && gateSelect) {
+      mainSelect.value = gateSelect.value;
+      if (typeof window.startDurationTimer === 'function') {
+        window.startDurationTimer();
+      }
+    }
+
+    const minusBtn = document.getElementById('minus-btn');
+    const plusBtn = document.getElementById('plus-btn');
+    if (minusBtn) minusBtn.disabled = false;
+    if (plusBtn) plusBtn.disabled = false;
+
+    hideGatekeeper();
+  };
+}
+
+function hideGatekeeper() {
+  const overlay = document.getElementById('gatekeeper-overlay');
+  if (overlay) {
+    overlay.classList.remove('visible');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('welcome-active');
+  }
+}
+
+/**
+ * Re-locks the dashboard (e.g. via Shortcut).
+ */
+function lockDashboard() {
+  const overlay = document.getElementById('gatekeeper-overlay');
+  const card = document.getElementById('gatekeeper-card');
+  const pinInput = document.getElementById('gate-pin-input');
+  
+  // Only lock if PIN is set
+  if (!localStorage.getItem('sprout_security_pin')) {
+    showToast("Set a PIN in settings to use Lock Screen.");
+    return;
+  }
+  
+  if (overlay && card) {
+    // Reset to Side A
+    card.classList.remove('is-flipped');
+    overlay.classList.add('visible');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('welcome-active');
+    
+    if (pinInput) {
+        pinInput.value = '';
+        setTimeout(() => pinInput.focus(), 100);
+    }
+  }
+}
+
+/**
+ * Initializes the sidebar menu logic (toggle, pin, focus).
+ */
+function initSideMenu() {
+  const sideMenu = document.getElementById('side-menu');
+  const overlay = document.getElementById('side-menu-overlay');
+  const toggleBtn = document.getElementById('menu-toggle-btn');
+  const closeBtn = document.getElementById('side-menu-close-btn');
+  const pinBtn = document.getElementById('side-menu-pin-btn');
+  const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+  let lastFocusedBeforeMenu = null;
+  const PIN_KEY = 'classroomSideMenuPinned';
+  let isPinned = false;
+
+  if (!sideMenu || !overlay || !toggleBtn || !closeBtn || !pinBtn) return;
+
+  const storedPinned = (() => {
+    try {
+      return window.localStorage ? window.localStorage.getItem(PIN_KEY) : null;
+    } catch (e) {
+      return null;
+    }
+  })();
+  if (storedPinned === 'true') {
+    isPinned = true;
+  }
+
+  function updatePinUI() {
+    pinBtn.classList.toggle('pinned', isPinned);
+    pinBtn.setAttribute('aria-pressed', isPinned ? 'true' : 'false');
+  }
+
+  function setMenuState(open) {
+    if (open) {
+      lastFocusedBeforeMenu = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      sideMenu.classList.add('open');
+      if (!isPinned) {
+        overlay.classList.add('visible');
+        document.body.classList.add('menu-overlay-open');
+      } else {
+        overlay.classList.remove('visible');
+        document.body.classList.remove('menu-overlay-open');
+      }
+      document.body.classList.add('menu-visible');
+      sideMenu.setAttribute('aria-hidden', 'false');
+      toggleBtn.setAttribute('aria-expanded', 'true');
+
+      const focusable = sideMenu.querySelectorAll(focusableSelector);
+      if (focusable.length > 0) {
+        const first = focusable[0];
+        if (first instanceof HTMLElement) {
+          first.focus();
+        }
+      }
+    } else {
+      sideMenu.classList.remove('open');
+      overlay.classList.remove('visible');
+      document.body.classList.remove('menu-overlay-open');
+      sideMenu.setAttribute('aria-hidden', 'true');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+
+      if (lastFocusedBeforeMenu && typeof lastFocusedBeforeMenu.focus === 'function') {
+        lastFocusedBeforeMenu.focus();
+      }
+      lastFocusedBeforeMenu = null;
+    }
+  }
+
+  function isMenuOpen() {
+    return sideMenu.classList.contains('open');
+  }
+
+  function openMenu() {
+    if (isPinned) {
+      setMenuState(true);
+      return;
+    }
+    if (!isMenuOpen()) {
+      setMenuState(true);
+    }
+  }
+
+  function closeMenu() {
+    if (isPinned) {
+      return;
+    }
+    if (isMenuOpen()) {
+      setMenuState(false);
+    }
+  }
+
+  function toggleMenu() {
+    if (isPinned) {
+      return;
+    }
+    if (isMenuOpen()) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  }
+
+  toggleBtn.addEventListener('click', toggleMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.addEventListener('click', closeMenu);
+
+  function setPinned(nextPinned) {
+    isPinned = nextPinned;
+    updatePinUI();
+    try {
+      if (window.localStorage) {
+        window.localStorage.setItem(PIN_KEY, isPinned ? 'true' : 'false');
+      }
+    } catch (e) {}
+
+    if (isPinned) {
+      document.body.classList.add('menu-pinned', 'menu-visible');
+      sideMenu.classList.add('pinned', 'open');
+      overlay.classList.remove('visible');
+      document.body.classList.remove('menu-overlay-open');
+      sideMenu.setAttribute('aria-hidden', 'false');
+      toggleBtn.setAttribute('aria-expanded', 'true');
+    } else {
+      document.body.classList.remove('menu-pinned');
+      sideMenu.classList.remove('pinned');
+    }
+  }
+
+  pinBtn.addEventListener('click', () => {
+    const wasPinned = isPinned;
+    const nextPinned = !isPinned;
+    setPinned(nextPinned);
+    if (wasPinned && !nextPinned) {
+      closeMenu();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (!isMenuOpen() || isPinned) return;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeMenu();
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+
+    const focusable = sideMenu.querySelectorAll(focusableSelector);
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey) {
+      if (document.activeElement === first) {
+        event.preventDefault();
+        if (last instanceof HTMLElement) {
+          last.focus();
+        }
+      }
+    } else {
+      if (document.activeElement === last) {
+        event.preventDefault();
+        if (first instanceof HTMLElement) {
+          first.focus();
+        }
+      }
+    }
+  });
+
+  const addStudentItem = sideMenu.querySelector('[data-menu-action="add-student"]');
+  if (addStudentItem) {
+    addStudentItem.addEventListener('click', () => {
+      // PROXY: Call global handler
+      if (typeof window.addNewStudent === 'function') {
+        window.addNewStudent();
+      }
+      closeMenu();
+    });
+  }
+
+  if (isPinned) {
+    setPinned(true);
+  } else {
+    updatePinUI();
+  }
+}
+
+/* ========================================= */
+/* REGION: SESSION PORTABILITY (PHASE 7)   */
+/* ========================================= */
+
+/**
+ * Injects the "Export Class" button into the Sidebar.
+ * Uses surgical insertion to avoid rewriting the parent container.
+ */
+function injectExportButton() {
+  // Target the side menu section (Primary Actions)
+  const menuSection = document.querySelector('.side-menu-section');
+  if (!menuSection) return;
+
+  // Check if button already exists to prevent duplicates
+  if (document.getElementById('side-menu-export-btn')) return;
+
+  // Create Button
+  const btn = document.createElement('button');
+  btn.id = 'side-menu-export-btn';
+  btn.className = 'side-menu-item';
+  btn.type = 'button';
+  btn.onclick = exportCurrentClass;
+  btn.innerHTML = `
+    <span>📤</span>
+    <span>Export Class</span>
+  `;
+
+  // Insert before the History button (or at specific index)
+  // Let's insert it before the "Save Session Snapshot" button for logical grouping
+  // or just append. Let's insert before the history button.
+  const historyBtn = document.getElementById('side-menu-history-btn');
+  if (historyBtn) {
+    menuSection.insertBefore(btn, historyBtn);
+  } else {
+    menuSection.appendChild(btn);
+  }
+}
+
+/**
+ * Sets up Drag & Drop listeners for importing class files.
+ * Target: #app-layout
+ */
+function setupDragDropImport() {
+  // CHANGE: Target the entire body to catch drops anywhere
+  const dropZone = document.body;
+  if (!dropZone) return;
+
+  // Prevent default behaviors
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+  });
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  // Highlight Drop Zone
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, highlight, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, unhighlight, false);
+  });
+
+  function highlight(e) {
+    dropZone.classList.add('drag-active');
+  }
+
+  function unhighlight(e) {
+    dropZone.classList.remove('drag-active');
+  }
+
+  // Handle Drop
+  dropZone.addEventListener('drop', handleDrop, false);
+
+  function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+
+    if (files.length > 0) {
+      const file = files[0];
+      // VALIDATION: Check file extension roughly
+      if (file.name.endsWith('.json')) {
+         importClassFile(file);
+      } else {
+         showToast("Invalid file type. Please drop a JSON file.");
+      }
+    }
+  }
+}
+
+/**
+ * Reads and parses the imported class file.
+ * @param {File} file - The uploaded file.
+ */
+function importClassFile(file) {
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    try {
+      const json = JSON.parse(e.target.result);
+      
+      // VALIDATION: Check Schema
+      if (json.type !== "SPROUT_CLASS" || !Array.isArray(json.students)) {
+         showToast("Error: Invalid Class File format.");
+         return;
+      }
+      
+      const activeClass = classesData[currentClassIndex];
+      if (!activeClass) return;
+
+      activeClass.name = json.className || activeClass.name;
+      activeClass.students = JSON.parse(JSON.stringify(json.students));
+      activeClass.dailyNote = json.dailyNote || "";
+      activeClass.groups = json.groups || [];
+
+      // 3. PERSIST IMMEDIATELY (WITH BYPASS)
+      // Pass 'true' to prevent the stale DOM from overwriting our new data
+      saveData(true);
+
+      // 4. NUCLEAR REFRESH
+      // Use the new safe refresher to prevent physics crashes
+      forceRefreshView();
+
+      showToast(`Imported ${activeClass.students.length} students into "${activeClass.name}"`);
+      
+    } catch (err) {
+      console.error(err);
+      showToast("Error parsing file.");
+    }
+  };
+  
+  reader.readAsText(file);
+}
+
+/**
+ * Injects the "Lock Screen" button into the Sidebar.
+ */
+function injectLockButton() {
+  // TARGET THE NEW FOOTER
+  const footer = document.getElementById('side-menu-footer');
+  if (!footer) return;
+  
+  // Prevent Duplicates
+  if (document.getElementById('side-menu-lock-btn')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'side-menu-lock-btn';
+  // Keep the same class for consistent styling
+  btn.className = 'side-menu-item';
+  btn.type = 'button';
+  btn.onclick = lockDashboard;
+  btn.innerHTML = `
+    <span>🔒</span>
+    <span>Lock Screen</span>
+  `;
+
+  // Append to the fixed footer
+  footer.appendChild(btn);
+}
+
+/* ========================================= */
+/* REGION: INITIALIZATION              */
+/* ========================================= */
+
+/**
+ * Main entry point.
+ * Initializes data, event listeners, and UI components when DOM is ready.
+ */
+window.addEventListener('load', () => {
+  // 1. DATA: Load from storage
+  loadData();
+
+  // 2. DOM: Initialize existing student cards
+  document.querySelectorAll('.student-card').forEach(card => {
+    ensureCardMenu(card);
+    attachNameEditHandlers(card);
+    getSim(card);
+  });
+
+  // 3. LAYOUT: Fix potential nesting issues
+  normalizeCardLayout();
+
+  // 4. LISTENERS: Attach auto-save listeners
+  const agendaEl = document.querySelector('.agenda-content');
+  if (agendaEl) {
+    agendaEl.addEventListener('input', saveData);
+  }
+  const profileNameEl = document.querySelector('.profile-name');
+  const profileClassEl = document.querySelector('.profile-class');
+  if (profileNameEl) {
+    profileNameEl.addEventListener('input', saveData);
+  }
+  if (profileClassEl) {
+    profileClassEl.addEventListener('input', saveData);
+  }
+  document.querySelectorAll('.links-grid .link-label').forEach(label => {
+    label.addEventListener('input', saveData);
+  });
+
+  // 5. COMPONENTS: Initialize complex UI components
+  initGatekeeper();
+  initSideMenu();
+  
+  // 6. PORTABILITY: Init Export/Import
+  injectExportButton();
+  setupDragDropImport();
+  
+  // 7. LEDGER: Init UI
+  injectLedgerButton();
+  
+  // 8. SECURITY: Init Lock Screen (Replaced by Gatekeeper)
+  // checkSecurity() removed as it's merged into Gatekeeper
+  injectLockButton(); // We might still want the lock button in the sidebar!
+  
+  // Keyboard Shortcut: Ctrl + Alt + L
+  document.addEventListener('keydown', (e) => {
+    // Use e.code === 'KeyL' to catch 'l' or 'L' regardless of CapsLock
+    if (e.ctrlKey && e.altKey && e.code === 'KeyL') {
+      e.preventDefault(); // Prevent default browser conflicts
+      lockDashboard();
+    }
+  });
+});
+
+// START: Kick off the clock
+setInterval(updateClock, 1000);
+updateClock();
+
+// EXPORTS: Expose functions to global scope for HTML onclick attributes
+window.addStarFor = addStarFor;
+window.removeStarFor = removeStarFor;
+window.addNewStudent = addNewStudent;
+window.resetAllStars = resetAllStars;
+window.startDurationTimer = startDurationTimer; // For welcome overlay
+
+
+/**
+ * DEVELOPER TOOL: The Nuclear Option
+ * Call 'wipe()' in the console to clean everything.
+ */
+window.wipe = function() {
+    // 1. Clear Local Storage
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem('sprout_security_pin');
+    localStorage.removeItem('classroomSideMenuPinned');
+    
+    // 2. Clear Session Storage (just in case)
+    sessionStorage.clear();
+    
+    // 3. Force Reload bypassing cache
+    window.location.reload(true);
+};
+
+/* ======================== */
+/* REGION: RANDOM PICKER    */
+/* ======================== */
+
+function renderPickerView() {
+    const container = document.getElementById('card-list');
+    const activeClass = classesData[currentClassIndex];
+    if (!activeClass) return;
+
+    // 1. Layout Reset (The Scrub)
+    container.innerHTML = '';
+    container.removeAttribute('style'); // Clear grid styles
+    container.className = 'picker-layout'; // Apply Flex layout
+
+    // 2. Initialize Pool (if empty)
+    // We compare pool + history length to total students to detect sync issues
+    const totalStudents = activeClass.students.length;
+    const currentTotal = pickerState.pool.length + pickerState.history.length;
+    
+    if (currentTotal === 0 || currentTotal !== totalStudents) {
+        // Reset/Init Pool
+        pickerState.pool = [...activeClass.students]; // Shallow copy
+        pickerState.history = [];
+    }
+
+    // 3. Render Stage (Left)
+    const stage = document.createElement('div');
+    stage.className = 'picker-stage';
+    stage.innerHTML = `
+        <div class="picker-emoji-lg" id="picker-emoji">🎲</div>
+        <div class="picker-display" id="picker-name">Ready?</div>
+        <div style="margin-top:auto; width:100%; display:flex; flex-direction:column; align-items:center; gap:12px;">
+            <button class="picker-btn-main" id="spin-btn" onclick="spinPicker()">
+                ${pickerState.pool.length === 0 ? '🔄 Reset Pool' : 'SPIN'}
+            </button>
+            <div style="color:#999; font-size:0.9rem;">
+                Pool: <span id="pool-count">${pickerState.pool.length}</span> students left
+            </div>
+        </div>
+    `;
+
+    // 4. Render History (Right)
+    const historyCol = document.createElement('div');
+    historyCol.className = 'picker-history-col';
+    historyCol.innerHTML = `<div class="picker-h-header"><span>Already Called</span> <button style="background:none;border:none;cursor:pointer;" onclick="resetPickerPool()">🔄</button></div>`;
+    
+    const historyList = document.createElement('div');
+    historyList.id = 'picker-history-list';
+    
+    // Render History Items
+    pickerState.history.forEach(s => {
+        historyList.appendChild(createPickerHistoryItem(s));
+    });
+    
+    historyCol.appendChild(historyList);
+
+    container.appendChild(stage);
+    container.appendChild(historyCol);
+    fitPickerNameText();
+}
+
+function createPickerHistoryItem(student) {
+    const div = document.createElement('div');
+    div.className = 'picker-item';
+    div.innerHTML = `
+        <div class="picker-item-name">
+            <span>${student.emoji}</span> ${student.name}
+        </div>
+        <div class="picker-item-controls">
+            <button class="picker-mini-btn p-add" onclick="adjustPickerStar('${student.name}', 1)">+</button>
+            <button class="picker-mini-btn p-rem" onclick="adjustPickerStar('${student.name}', -1)">-</button>
+        </div>
+    `;
+    return div;
+}
+
+function spinPicker() {
+    if (pickerState.isSpinning) return;
+    
+    // Auto-Reset if empty
+    if (pickerState.pool.length === 0) {
+        resetPickerPool();
+        return;
+    }
+
+    pickerState.isSpinning = true;
+    const btn = document.getElementById('spin-btn');
+    const nameDisplay = document.getElementById('picker-name');
+    const emojiDisplay = document.getElementById('picker-emoji');
+    
+    btn.disabled = true;
+    
+    // ANIMATION: Slot Machine Effect
+    let iterations = 0;
+    const maxIterations = 20; // How many flips before stopping
+    const interval = setInterval(() => {
+        // Show random temp student
+        const randIndex = Math.floor(Math.random() * pickerState.pool.length);
+        const temp = pickerState.pool[randIndex];
+        nameDisplay.textContent = temp.name;
+        emojiDisplay.textContent = temp.emoji;
+        fitPickerNameText();
+        
+        // Optional: Play tiny tick sound here if you want
+        
+        iterations++;
+        if (iterations >= maxIterations) {
+            clearInterval(interval);
+            finalizePick();
+        }
+    }, 100); // Speed of flip
+}
+
+function finalizePick() {
+    // 1. Pick Winner
+    const winnerIndex = Math.floor(Math.random() * pickerState.pool.length);
+    const winner = pickerState.pool.splice(winnerIndex, 1)[0]; // Remove from pool
+    pickerState.history.unshift(winner); // Add to history top
+    pickerState.isSpinning = false;
+
+    // 2. UI Update
+    document.getElementById('picker-name').textContent = winner.name;
+    document.getElementById('picker-name').style.color = 'var(--primary)';
+    fitPickerNameText();
+    document.getElementById('picker-emoji').textContent = winner.emoji;
+    document.getElementById('pool-count').textContent = pickerState.pool.length;
+    
+    const btn = document.getElementById('spin-btn');
+    btn.disabled = false;
+    btn.textContent = pickerState.pool.length === 0 ? '🔄 Reset Pool' : 'SPIN';
+
+    // 3. Add to History Column (with animation)
+    const list = document.getElementById('picker-history-list');
+    const item = createPickerHistoryItem(winner);
+    list.insertBefore(item, list.firstChild);
+    
+    // 4. Sound
+    if (window.SoundManager) SoundManager.playSessionEnd(); // Reuse victory sound
+}
+
+function fitPickerNameText() {
+    const nameDisplay = document.getElementById('picker-name');
+    if (!nameDisplay) return;
+    
+    // Reset to max font to start measuring
+    const maxFont = 56;
+    const minFont = 24;
+    nameDisplay.style.fontSize = `${maxFont}px`;
+    
+    // We want to ensure it fits within the container without overflowing
+    // The container has flex alignment, so scrollWidth vs clientWidth is the key check
+    // We also check scrollHeight vs clientHeight to prevent multi-line overflow if not intended
+    // However, since we allow word-break, we mainly care about height not exceeding limits
+    
+    let current = maxFont;
+    while (
+        current > minFont &&
+        (nameDisplay.scrollWidth > nameDisplay.clientWidth || nameDisplay.scrollHeight > (nameDisplay.clientHeight + 4))
+    ) {
+        current -= 2; // Decrement faster for efficiency
+        nameDisplay.style.fontSize = `${current}px`;
+    }
+}
+
+function resetPickerPool() {
+    pickerState.pool = []; 
+    pickerState.history = [];
+    renderPickerView();
+}
+
+function adjustPickerStar(studentName, delta) {
+    // We need to find the REAL student object in classesData to give the star
+    const activeClass = classesData[currentClassIndex];
+    const student = activeClass.students.find(s => s.name === studentName);
+    
+    if (student) {
+        student.count += delta;
+        logTransaction(studentName, delta > 0 ? 'ADD' : 'REMOVE');
+        saveData();
+        showToast(`${delta > 0 ? 'Added' : 'Removed'} star for ${studentName}`);
+    }
+}
+
+</script>
+</body>
+</html>
