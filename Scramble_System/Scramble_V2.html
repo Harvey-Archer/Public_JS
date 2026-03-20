@@ -1,1 +1,916 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<!-- 
+  @version 2.0
+  @date 2026-03-20
+  @description Grade 1 ESL Scramble Cards with Teacher Control Panel, Dictionary Management, and Difficulty Levels.
+-->
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Grade 1 ESL Scramble Cards v2</title>
+  <style>
+    :root{
+      --bg:#fff7e6;
+      --card1:#ffd6a5;
+      --card2:#ffd3e0;
+      --card3:#cfe8ff;
+      --accent:#ff6f61;
+      --accent-dark:#ff3b2e;
+      --text:#2b2b2b;
+      --muted:#6b6b6b;
+      --teacher-bg: rgba(255, 255, 255, 0.85);
+    }
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: "Baloo 2", "Comic Sans MS", system-ui, sans-serif;
+      background: linear-gradient(180deg, var(--bg), #fff3d9);
+      color:var(--text);
+      overflow: hidden; /* Prevent scrolling on main body */
+    }
+    /* Full-viewport card container */
+    .card {
+      width:100vw;
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      box-sizing:border-box;
+      padding:32px;
+      transition:background 400ms ease;
+    }
+    /* playful panel */
+    .panel {
+      width:min(980px, 92%);
+      height:min(720px, 86vh);
+      border-radius:28px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:space-between;
+      padding:28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75));
+      border:6px solid rgba(255,255,255,0.6);
+      position:relative;
+    }
+    .top-row{
+      width:100%;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+    .progress {
+      font-size:1.05rem;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .progress .dot{
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background:var(--card1);
+      box-shadow:0 2px 6px rgba(0,0,0,0.08);
+    }
+    .scramble-area{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:18px;
+      width:100%;
+    }
+    .scrambled {
+      font-size:clamp(2.4rem, 6vw, 6rem);
+      font-weight:800;
+      letter-spacing:0.06em;
+      color:#3b3b3b;
+      text-align:center;
+      padding:18px 28px;
+      border-radius:18px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.6), rgba(255,255,255,0.4));
+      border:4px dashed rgba(0,0,0,0.06);
+      min-width:60%;
+      word-break:break-word;
+    }
+    .controls{
+      width:100%;
+      display:flex;
+      justify-content:center;
+      gap:14px;
+      align-items:center;
+      margin-top:6px;
+    }
+    .btn{
+      background:var(--accent);
+      color:white;
+      border:none;
+      padding:14px 20px;
+      border-radius:14px;
+      font-size:1.05rem;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(255,111,97,0.18);
+      transition:transform 140ms ease, background 140ms ease;
+    }
+    .btn:active{ transform:translateY(2px); }
+    .btn.secondary{
+      background:transparent;
+      color:var(--accent);
+      border:3px solid rgba(255,111,97,0.12);
+      font-weight:800;
+      padding:12px 18px;
+      box-shadow: none;
+    }
+    .btn.ghost{
+      background:transparent;
+      color:var(--muted);
+      border:2px dashed rgba(0,0,0,0.06);
+      padding:10px 14px;
+      font-weight:700;
+      box-shadow: none;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .answer {
+      font-size:2rem;
+      color: #2e8b57;
+      font-weight:800;
+      margin-top:8px;
+      display:none;
+      background:rgba(46,139,87,0.06);
+      padding:10px 16px;
+      border-radius:12px;
+    }
+    .nav {
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .emoji {
+      font-size:1.6rem;
+      filter:drop-shadow(0 6px 12px rgba(0,0,0,0.08));
+    }
+    .footer {
+      width:100%;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-top:8px;
+    }
+    .hint {
+      color:var(--muted);
+      font-size:0.98rem;
+    }
+    
+    /* color themes rotate */
+    .theme-0 { background: linear-gradient(135deg, var(--card1), #fff1e6); }
+    .theme-1 { background: linear-gradient(135deg, var(--card2), #fff0f6); }
+    .theme-2 { background: linear-gradient(135deg, var(--card3), #e8f6ff); }
+    
+    /* responsive */
+    @media (max-width:520px){
+      .scrambled { font-size:clamp(1.8rem, 9vw, 3rem); min-width:80%; }
+      .panel { padding:18px; border-radius:20px; }
+      .btn { padding:12px 14px; font-size:0.98rem; border-radius:12px; }
+    }
+
+    /* --- Teacher Control Panel UI --- */
+    .teacher-trigger {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      opacity: 0.15;
+      cursor: pointer;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 100;
+    }
+    .teacher-trigger:hover {
+      opacity: 1;
+      transform: rotate(90deg);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 1;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .modal-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .glass-panel {
+      background: var(--teacher-bg);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.5);
+      box-shadow: 0 24px 48px rgba(0,0,0,0.15);
+      width: min(90%, 450px);
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: system-ui, sans-serif; /* Clean font for teacher panel */
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.5);
+    }
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      color: var(--text);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .close-btn {
+      background: rgba(0,0,0,0.05);
+      border: none;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .close-btn:hover { background: rgba(0,0,0,0.1); }
+
+    .modal-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .control-group {
+      margin-bottom: 24px;
+    }
+    .control-group label.group-title {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+      font-size: 1.05rem;
+    }
+
+    /* Difficulty Toggle */
+    .difficulty-options {
+      display: flex;
+      background: rgba(0,0,0,0.05);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+    }
+    .diff-label {
+      flex: 1;
+      text-align: center;
+      padding: 8px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--muted);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .diff-label input {
+      display: none;
+    }
+    .diff-label:has(input:checked) {
+      background: white;
+      color: var(--accent-dark);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Dictionary */
+    .add-word-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .add-word-row input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 2px solid rgba(0,0,0,0.1);
+      font-size: 1rem;
+      outline: none;
+      background: rgba(255,255,255,0.8);
+      transition: border-color 0.2s ease, background 0.2s;
+    }
+    .add-word-row input:focus {
+      border-color: var(--accent);
+      background: white;
+    }
+    .add-word-row button {
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      border-radius: 12px;
+    }
+
+    .word-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .word-list::-webkit-scrollbar { width: 6px; }
+    .word-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); border-radius: 4px; }
+    .word-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+    
+    .word-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    .word-item .remove-btn {
+      background: transparent;
+      border: none;
+      color: #ff4d4f;
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+      padding: 0 4px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .word-item .remove-btn:hover { opacity: 1; }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.5);
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #333;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      z-index: 2000;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <!-- Discreet Teacher Panel Trigger -->
+  <button id="teacherBtn" class="teacher-trigger" aria-label="Teacher Control Panel">⚙️</button>
+
+  <div id="card" class="card theme-0">
+    <div class="panel" role="region" aria-label="ESL Scramble Card">
+      <div class="top-row">
+        <div class="progress" aria-hidden="true">
+          <span class="dot"></span>
+          <strong id="countLabel">1 / 13</strong>
+        </div>
+        <div class="nav" aria-hidden="true">
+          <span class="emoji">🎈</span>
+          <span class="emoji">🧸</span>
+        </div>
+      </div>
+
+      <div class="scramble-area">
+        <div id="scrambledText" class="scrambled" aria-live="polite"></div>
+        <div id="answerText" class="answer" aria-hidden="true"></div>
+
+        <div class="controls" role="group" aria-label="Card controls">
+          <button class="btn" id="showBtn" aria-pressed="false">Show Answer</button>
+          <button class="btn secondary" id="nextBtn">Next</button>
+          <button class="btn ghost" id="prevBtn">Prev</button>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="hint" id="difficultyHint">Slightly scrambled so kids can still read</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button id="shuffleBtn" class="btn ghost" title="Reshuffle current scramble">Reshuffle</button>
+          <button id="autoBtn" class="btn secondary" title="Auto play cards">Auto Play</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teacher Control Panel Modal -->
+  <div id="teacherModal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal-content glass-panel">
+      <div class="modal-header">
+        <h2>⚙️ Teacher Controls</h2>
+        <button id="closeTeacherBtn" class="close-btn" aria-label="Close">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Difficulty -->
+        <div class="control-group">
+          <label class="group-title">Scramble Difficulty</label>
+          <div class="difficulty-options">
+            <label class="diff-label">
+              <input type="radio" name="difficulty" value="easy" checked>
+              Easy
+            </label>
+            <label class="diff-label">
+              <input type="radio" name="difficulty" value="medium">
+              Medium
+            </label>
+            <label class="diff-label">
+              <input type="radio" name="difficulty" value="hard">
+              Hard
+            </label>
+          </div>
+        </div>
+        
+        <!-- Word Dictionary -->
+        <div class="control-group">
+          <label class="group-title">Dictionary (<span id="wordCount">0</span> words)</label>
+          <div class="add-word-row">
+            <input type="text" id="newWordInput" placeholder="Add a new word or phrase..." />
+            <button id="addWordBtn" class="btn">Add</button>
+          </div>
+          <div class="word-list" id="wordList">
+            <!-- Word items injected here -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button id="resetDefaultsBtn" class="btn ghost" style="padding: 10px 14px; font-size: 0.9rem;">Reset Defaults</button>
+        <button id="saveTeacherBtn" class="btn" style="padding: 10px 20px; font-size: 0.95rem;">Save & Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Saved Successfully!</div>
+
+  <script>
+    // Default words for fallback
+    const defaultWords = [
+      "I'm sorry", "thank you", "Good Bye", "Sing", "Run", "Like", "Bear", "Dog",
+      "Swim", "Sing", "Cat", "Boy", "Girl", "One", "Two", "Three", "Four", "Five",
+      "Six", "Seven", "Eight", "Nine", "Ten", "Pencil", "Cap", "Flower"
+    ];
+
+    // State
+    let words = [];
+    let currentDifficulty = 'easy'; // 'easy', 'medium', 'hard'
+    let index = 0;
+    let currentScramble = '';
+    let autoPlay = false;
+    let autoTimer = null;
+    
+    // Teacher panel state
+    let tempWords = [];
+    let tempDifficulty = 'easy';
+
+    // DOM elements
+    const scrambledText = document.getElementById('scrambledText');
+    const answerText = document.getElementById('answerText');
+    const showBtn = document.getElementById('showBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const autoBtn = document.getElementById('autoBtn');
+    const countLabel = document.getElementById('countLabel');
+    const cardEl = document.getElementById('card');
+    const difficultyHint = document.getElementById('difficultyHint');
+
+    // Teacher Panel DOM
+    const teacherBtn = document.getElementById('teacherBtn');
+    const teacherModal = document.getElementById('teacherModal');
+    const closeTeacherBtn = document.getElementById('closeTeacherBtn');
+    const saveTeacherBtn = document.getElementById('saveTeacherBtn');
+    const resetDefaultsBtn = document.getElementById('resetDefaultsBtn');
+    const wordListEl = document.getElementById('wordList');
+    const newWordInput = document.getElementById('newWordInput');
+    const addWordBtn = document.getElementById('addWordBtn');
+    const wordCountEl = document.getElementById('wordCount');
+    const difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
+    const toastEl = document.getElementById('toast');
+
+    // --- State Management ---
+    function loadState() {
+      const savedWords = localStorage.getItem('scramble_words_v2');
+      const savedDiff = localStorage.getItem('scramble_diff_v2');
+      
+      if (savedWords) {
+        try {
+          words = JSON.parse(savedWords);
+          if (!Array.isArray(words) || words.length === 0) words = [...defaultWords];
+        } catch(e) {
+          words = [...defaultWords];
+        }
+      } else {
+        words = [...defaultWords];
+      }
+
+      if (savedDiff && ['easy', 'medium', 'hard'].includes(savedDiff)) {
+        currentDifficulty = savedDiff;
+      } else {
+        currentDifficulty = 'easy';
+      }
+    }
+
+    function saveState(newWords, newDiff) {
+      words = [...newWords];
+      currentDifficulty = newDiff;
+      localStorage.setItem('scramble_words_v2', JSON.stringify(words));
+      localStorage.setItem('scramble_diff_v2', currentDifficulty);
+      
+      // Reset index if out of bounds
+      if (index >= words.length) index = 0;
+      if (words.length === 0) {
+        scrambledText.textContent = "Empty";
+        answerText.textContent = "";
+      } else {
+        renderCard();
+      }
+      updateHint();
+      showToast("Settings Saved!");
+    }
+
+    function updateHint() {
+      if (currentDifficulty === 'easy') {
+        difficultyHint.textContent = "Slightly scrambled so kids can still read";
+      } else if (currentDifficulty === 'medium') {
+        difficultyHint.textContent = "Medium scramble: first letter kept intact";
+      } else {
+        difficultyHint.textContent = "Hard scramble: fully randomized";
+      }
+    }
+
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 2500);
+    }
+
+    // --- Scrambling Engine ---
+    function shuffleArray(arr){
+      for(let i = arr.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function swapLetters(letters, indices, idx1, idx2) {
+      const out = letters.slice();
+      const i = indices[idx1], j = indices[idx2];
+      out[i] = letters[j]; 
+      out[j] = letters[i];
+      return out.join('');
+    }
+
+    function scrambleToken(token, difficulty) {
+      const letters = token.split('');
+      if(!/[A-Za-z]/.test(token)) return token;
+
+      const letterIndices = [];
+      const letterChars = [];
+      for(let i=0; i<letters.length; i++){
+        if(/[A-Za-z]/.test(letters[i])){
+          letterIndices.push(i);
+          letterChars.push(letters[i]);
+        }
+      }
+      const n = letterChars.length;
+      if(n <= 1) return token;
+
+      if (difficulty === 'easy') {
+        if(n === 2) return swapLetters(letters, letterIndices, 0, 1);
+        if(n === 3) return swapLetters(letters, letterIndices, 1, 2);
+        
+        const first = letterChars[0];
+        const last = letterChars[n-1];
+        let middle = letterChars.slice(1, n-1);
+        
+        let shuffled = shuffleArray(middle.slice());
+        let tries = 0;
+        while(shuffled.join('') === middle.join('') && tries < 10) {
+          shuffled = shuffleArray(middle.slice());
+          tries++;
+        }
+        
+        const out = letters.slice();
+        for(let k=0; k<shuffled.length; k++){
+          out[letterIndices[1 + k]] = shuffled[k];
+        }
+        return out.join('');
+      } 
+      else if (difficulty === 'medium') {
+        if(n === 2) return swapLetters(letters, letterIndices, 0, 1);
+        
+        const first = letterChars[0];
+        let rest = letterChars.slice(1);
+        
+        let shuffled = shuffleArray(rest.slice());
+        let tries = 0;
+        while(shuffled.join('') === rest.join('') && tries < 10) {
+          shuffled = shuffleArray(rest.slice());
+          tries++;
+        }
+        
+        const out = letters.slice();
+        for(let k=0; k<shuffled.length; k++){
+          out[letterIndices[1 + k]] = shuffled[k];
+        }
+        return out.join('');
+      } 
+      else { // hard
+        let shuffled = shuffleArray(letterChars.slice());
+        let tries = 0;
+        while(shuffled.join('') === letterChars.join('') && tries < 10) {
+          shuffled = shuffleArray(letterChars.slice());
+          tries++;
+        }
+        
+        const out = letters.slice();
+        for(let k=0; k<shuffled.length; k++){
+          out[letterIndices[k]] = shuffled[k];
+        }
+        return out.join('');
+      }
+    }
+
+    function scramblePhrase(phrase, difficulty){
+      const parts = phrase.split(' ');
+      const scrambledParts = parts.map(p => scrambleToken(p, difficulty));
+      return scrambledParts.join(' ');
+    }
+
+    function ensureScrambled(original, difficulty){
+      let s = scramblePhrase(original, difficulty);
+      // Fallback if identical and length > 2
+      if(s === original && original.replace(/[^A-Za-z]/g,'').length > 2){
+        const tokens = original.split(' ');
+        let longestIdx = 0;
+        for(let i=1; i<tokens.length; i++){
+          if(tokens[i].replace(/[^A-Za-z]/g,'').length > tokens[longestIdx].replace(/[^A-Za-z]/g,'').length) longestIdx = i;
+        }
+        const tok = tokens[longestIdx];
+        const letters = tok.split('');
+        const letterPos = [];
+        for(let i=0; i<letters.length; i++) if(/[A-Za-z]/.test(letters[i])) letterPos.push(i);
+        
+        if(letterPos.length >= 2){
+          // Force swap middle two letters
+          const a = letterPos[Math.floor(letterPos.length/2)-1];
+          const b = letterPos[Math.floor(letterPos.length/2)];
+          [letters[a], letters[b]] = [letters[b], letters[a]];
+          tokens[longestIdx] = letters.join('');
+          s = tokens.join(' ');
+        }
+      }
+      return s;
+    }
+
+    // --- Core UI Logic ---
+    function updateTheme(i){
+      const theme = i % 3;
+      cardEl.classList.remove('theme-0','theme-1','theme-2');
+      cardEl.classList.add('theme-' + theme);
+    }
+
+    function renderCard(){
+      if(words.length === 0) return;
+      const original = words[index];
+      currentScramble = ensureScrambled(original, currentDifficulty);
+      scrambledText.textContent = currentScramble;
+      answerText.textContent = original;
+      answerText.style.display = 'none';
+      answerText.setAttribute('aria-hidden','true');
+      showBtn.setAttribute('aria-pressed','false');
+      showBtn.textContent = 'Show Answer';
+      countLabel.textContent = `${index + 1} / ${words.length}`;
+      updateTheme(index);
+    }
+
+    // --- Main Interactions ---
+    showBtn.addEventListener('click', () => {
+      if(words.length === 0) return;
+      const visible = answerText.style.display !== 'none';
+      if(visible){
+        answerText.style.display = 'none';
+        answerText.setAttribute('aria-hidden','true');
+        showBtn.setAttribute('aria-pressed','false');
+        showBtn.textContent = 'Show Answer';
+      } else {
+        answerText.style.display = 'block';
+        answerText.setAttribute('aria-hidden','false');
+        showBtn.setAttribute('aria-pressed','true');
+        showBtn.textContent = 'Hide Answer';
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if(words.length === 0) return;
+      index = (index + 1) % words.length;
+      renderCard();
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if(words.length === 0) return;
+      index = (index - 1 + words.length) % words.length;
+      renderCard();
+    });
+
+    shuffleBtn.addEventListener('click', () => {
+      if(words.length === 0) return;
+      currentScramble = ensureScrambled(words[index], currentDifficulty);
+      scrambledText.textContent = currentScramble;
+      answerText.style.display = 'none';
+      answerText.setAttribute('aria-hidden','true');
+      showBtn.setAttribute('aria-pressed','false');
+      showBtn.textContent = 'Show Answer';
+    });
+
+    autoBtn.addEventListener('click', () => {
+      if(words.length === 0) return;
+      autoPlay = !autoPlay;
+      if(autoPlay){
+        autoBtn.textContent = 'Stop';
+        autoBtn.classList.add('active');
+        autoTimer = setInterval(() => {
+          index = (index + 1) % words.length;
+          renderCard();
+        }, 3500);
+      } else {
+        autoBtn.textContent = 'Auto Play';
+        autoBtn.classList.remove('active');
+        clearInterval(autoTimer);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      // Don't trigger card shortcuts if typing in input
+      if(e.target.tagName === 'INPUT') return;
+      
+      if(e.code === 'Space'){
+        e.preventDefault();
+        if(words.length) { index = (index + 1) % words.length; renderCard(); }
+      } else if(e.code === 'Enter'){
+        showBtn.click();
+      } else if(e.code === 'ArrowRight'){
+        nextBtn.click();
+      } else if(e.code === 'ArrowLeft'){
+        prevBtn.click();
+      }
+    });
+
+    // --- Teacher Panel Logic ---
+    function openTeacherPanel() {
+      tempWords = [...words];
+      tempDifficulty = currentDifficulty;
+      
+      // Set difficulty radio
+      document.querySelector(`input[name="difficulty"][value="${tempDifficulty}"]`).checked = true;
+      
+      renderWordList();
+      
+      teacherModal.classList.remove('hidden');
+      teacherModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeTeacherPanel() {
+      teacherModal.classList.add('hidden');
+      teacherModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function renderWordList() {
+      wordListEl.innerHTML = '';
+      wordCountEl.textContent = tempWords.length;
+      
+      tempWords.forEach((word, idx) => {
+        const div = document.createElement('div');
+        div.className = 'word-item';
+        
+        const span = document.createElement('span');
+        span.textContent = word;
+        
+        const btn = document.createElement('button');
+        btn.className = 'remove-btn';
+        btn.innerHTML = '&times;';
+        btn.title = 'Remove word';
+        btn.onclick = () => {
+          tempWords.splice(idx, 1);
+          renderWordList();
+        };
+        
+        div.appendChild(span);
+        div.appendChild(btn);
+        wordListEl.appendChild(div);
+      });
+    }
+
+    function addNewWord() {
+      const val = newWordInput.value.trim();
+      if(val) {
+        tempWords.unshift(val); // Add to top of list
+        newWordInput.value = '';
+        renderWordList();
+      }
+    }
+
+    // Teacher Panel Event Listeners
+    teacherBtn.addEventListener('click', openTeacherPanel);
+    closeTeacherBtn.addEventListener('click', closeTeacherPanel);
+    
+    // Close on background click
+    teacherModal.addEventListener('click', (e) => {
+      if(e.target === teacherModal) closeTeacherPanel();
+    });
+
+    addWordBtn.addEventListener('click', addNewWord);
+    newWordInput.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter') {
+        e.preventDefault();
+        addNewWord();
+      }
+    });
+
+    difficultyRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        if(e.target.checked) {
+          tempDifficulty = e.target.value;
+        }
+      });
+    });
+
+    resetDefaultsBtn.addEventListener('click', () => {
+      if(confirm("Are you sure you want to reset to default words and easy difficulty?")) {
+        tempWords = [...defaultWords];
+        tempDifficulty = 'easy';
+        document.querySelector(`input[name="difficulty"][value="easy"]`).checked = true;
+        renderWordList();
+      }
+    });
+
+    saveTeacherBtn.addEventListener('click', () => {
+      if(tempWords.length === 0) {
+        alert("Dictionary cannot be empty. Please add at least one word.");
+        return;
+      }
+      saveState(tempWords, tempDifficulty);
+      closeTeacherPanel();
+    });
+
+    // --- Init ---
+    loadState();
+    updateHint();
+    renderCard();
+
+  </script>
+</body>
+</html>
