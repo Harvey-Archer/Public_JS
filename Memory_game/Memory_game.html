@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Futuristic Vocabulary Memory</title>
+<style>
+  /* Theme variables */
+  :root{
+    --bg-1: #0b1020;
+    --bg-2: #071028;
+    --glass: rgba(255,255,255,0.04);
+    --muted: #9aa7c7;
+    --accent: #6be7ff;
+    --accent-2: #7a5cff;
+    --neon: linear-gradient(90deg,var(--accent),var(--accent-2));
+    --card-size: 120px;
+    --gap: 14px;
+    --radius: 14px;
+    --glass-border: rgba(255,255,255,0.06);
+    --glass-highlight: rgba(255,255,255,0.02);
+    --glass-strong: rgba(255,255,255,0.06);
+    --glass-blur: 8px;
+    --shadow: 0 8px 30px rgba(2,6,23,0.6);
+    --glass-padding: 14px;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color-scheme: dark;
+  }
+
+  /* Page background and animated gradient */
+  html,body{height:100%}
+  body{
+    margin:0;
+    min-height:100%;
+    background:
+      radial-gradient(1200px 600px at 10% 10%, rgba(122,92,255,0.08), transparent 8%),
+      radial-gradient(900px 500px at 90% 90%, rgba(107,231,255,0.06), transparent 10%),
+      linear-gradient(180deg,var(--bg-1),var(--bg-2));
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:36px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  /* App shell */
+  .app{
+    width:1100px;
+    max-width:calc(100% - 48px);
+    border-radius:18px;
+    padding:20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(255,255,255,0.03);
+    backdrop-filter: blur(8px) saturate(120%);
+    overflow:hidden;
+  }
+
+  header{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    margin-bottom:18px;
+  }
+  .logo{
+    width:56px;height:56px;border-radius:12px;
+    background:conic-gradient(from 120deg, rgba(123,92,255,0.18), rgba(107,231,255,0.18));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow: 0 6px 18px rgba(11,16,32,0.6), inset 0 -6px 18px rgba(255,255,255,0.02);
+    border:1px solid rgba(255,255,255,0.04);
+  }
+  .logo svg{filter:drop-shadow(0 6px 18px rgba(0,0,0,0.6));}
+  h1{font-size:20px;margin:0;color:#eaf6ff;letter-spacing:0.2px}
+  p.lead{margin:0;color:var(--muted);font-size:13px}
+
+  /* Layout */
+  .top{
+    display:flex;
+    justify-content:center;
+    align-items:start;
+    margin: 0 auto;
+    max-width: 800px; /* Center the setup panel nicely */
+  }
+
+  /* Left panel: upload + pairs */
+  .panel{
+    width: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;
+    padding:var(--glass-padding);
+    border:1px solid var(--glass-border);
+    box-shadow: 0 6px 18px rgba(2,6,23,0.45);
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .panel.drag-over {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, rgba(107,231,255,0.06), rgba(122,92,255,0.03));
+    box-shadow: 0 0 20px rgba(107,231,255,0.15);
+  }
+
+  .controls{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom:12px;
+  }
+
+  .file-btn{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    border-radius:10px;
+    background:linear-gradient(180deg, rgba(107,231,255,0.06), rgba(122,92,255,0.04));
+    color:var(--accent);
+    border:1px solid rgba(107,231,255,0.12);
+    cursor:pointer;
+    font-weight:600;
+    transition:transform .18s ease, box-shadow .18s;
+  }
+  .file-btn:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(107,231,255,0.06)}
+  .file-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+  .action-row{display:flex;gap:10px;align-items:center;margin-left:auto}
+  .btn{
+    padding:10px 12px;border-radius:10px;border:0;background:transparent;color:var(--muted);cursor:pointer;font-weight:600;
+    transition:all .18s;
+  }
+  .btn.primary{
+    background:var(--neon);color:#021026;background-clip:padding-box;
+    box-shadow:0 6px 20px rgba(122,92,255,0.12), inset 0 -2px 8px rgba(255,255,255,0.02);
+    color:#021026;
+  }
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+  /* Pairs list */
+  .pairs{
+    display:grid;
+    gap:10px;
+    margin-top:8px;
+  }
+  .pair{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    padding:10px;
+    border-radius:12px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+    border:1px solid rgba(255,255,255,0.02);
+    transition:transform .18s, box-shadow .18s;
+  }
+  .pair:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(2,6,23,0.45)}
+  .thumb{
+    width:84px;height:64px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,0.03);
+    box-shadow: 0 6px 18px rgba(2,6,23,0.45);
+  }
+  .pair input[type="text"]{
+    flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);
+    background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+    color:#eaf6ff;font-weight:600;
+    outline:none;
+    transition:box-shadow .12s, transform .12s;
+  }
+  .pair input[type="text"]:focus{box-shadow:0 6px 18px rgba(107,231,255,0.06);transform:translateY(-2px)}
+  .remove{
+    background:transparent;border:0;color:#ff8b8b;font-weight:700;font-size:18px;cursor:pointer;padding:6px;border-radius:8px;
+  }
+  .remove:hover{transform:scale(1.06)}
+
+  /* --- Fullscreen Memory Board Mode --- */
+  .memory-board-overlay {
+    position: fixed; inset: 0; z-index: 9990;
+    background: radial-gradient(circle at center, var(--bg-2), #000);
+    display: none; overflow-y: auto; overflow-x: hidden;
+    padding: 100px 40px 40px 40px; /* Space for controls at top */
+  }
+  .memory-controls-bar {
+    position: fixed; top: 0; left: 0; right: 0; height: 80px;
+    background: rgba(7, 16, 40, 0.8); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 9999;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .memory-stats {
+    font-size: 20px; font-weight: 700; color: #eaf6ff;
+    display: flex; gap: 24px;
+  }
+  .memory-stats span { color: var(--accent); }
+
+  .memory-grid {
+    display: grid;
+    gap: 24px;
+    justify-content: center;
+    max-width: 1600px;
+    margin: 0 auto;
+    /* Grid columns are set dynamically in JS based on card count */
+  }
+
+  /* Large Memory Cards */
+  .m-card {
+    aspect-ratio: 3 / 4; /* Standard card ratio */
+    width: 100%;
+    min-width: 160px;
+    max-width: 280px; /* Prevent them from getting comically large on ultra-wide screens */
+    perspective: 1200px;
+    cursor: pointer;
+    user-select: none; -webkit-user-select: none; -webkit-user-drag: none;
+  }
+  .m-card-inner {
+    position: relative; width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  .m-card.flipped .m-card-inner { transform: rotateY(180deg); }
+  .m-card.matched .m-card-inner { 
+    box-shadow: 0 0 30px rgba(107,231,255,0.4);
+    animation: matchPulse 0.9s ease both;
+  }
+
+  .m-face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border-radius: 16px; overflow: hidden; border: 2px solid rgba(255,255,255,0.05);
+    display: flex; flex-direction: column; background: var(--bg-1);
+    -webkit-user-drag: none;
+  }
+  
+  .m-back {
+    background: linear-gradient(135deg, rgba(122,92,255,0.2), rgba(107,231,255,0.1)), var(--bg-2);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.1); font-size: 64px; font-weight: 900;
+    border: 2px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+  }
+  
+  .m-front {
+    transform: rotateY(180deg);
+    background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  }
+  .m-front img { 
+    flex: 1; object-fit: cover; width: 100%; min-height: 0; 
+    pointer-events: none; -webkit-user-drag: none;
+  }
+  .m-front .word {
+    padding: 16px 12px; text-align: center; font-size: 24px; font-weight: 800;
+    color: #fff; background: linear-gradient(0deg, rgba(0,0,0,0.9), rgba(0,0,0,0.6));
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    word-break: break-word; line-height: 1.2;
+  }
+  
+  /* Text-only card styling (for the vocabulary match) */
+  .m-front.text-only {
+    justify-content: center; align-items: center;
+    background: radial-gradient(circle at center, rgba(107,231,255,0.1), transparent), var(--bg-2);
+  }
+  .m-front.text-only .word {
+    background: none; border: none; font-size: 32px; padding: 24px;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.8);
+  }
+
+  /* small helpers */
+  .muted{color:var(--muted);font-size:13px}
+  .controls-row{display:flex;gap:8px;align-items:center}
+  .pill{padding:8px 10px;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.02);color:var(--muted);font-weight:700}
+  .sr-only{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+
+  /* responsive */
+  @media (max-width:1100px){
+    .top{flex-direction: column;}
+  }
+
+  /* --- Casino Shuffle Mode --- */
+  .casino-board {
+    position: fixed; inset: 0; z-index: 9990;
+    background: radial-gradient(circle at center, var(--bg-2), #000);
+    display: none; overflow: hidden;
+    touch-action: none; /* Prevent scroll while dragging */
+  }
+  .casino-controls {
+    position: absolute; top: 24px; left: 24px; z-index: 99999;
+    display: flex; gap: 12px;
+  }
+  /* The outer container handles absolute positioning and 2D rotation (table physics) */
+  .c-card {
+    position: absolute; width: 220px; height: 310px;
+    perspective: 1200px; cursor: grab;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    user-select: none; /* Prevent blue highlight on double click */
+    -webkit-user-select: none;
+    -webkit-user-drag: none; /* Prevent native dragging */
+  }
+  .c-card.dragging { cursor: grabbing; transition: none; }
+  .c-card.auto-washing { transition: top 0.8s ease-in-out, left 0.8s ease-in-out, transform 0.8s ease-in-out; }
+  
+  /* The inner container handles the 3D flip and focus scale */
+  .c-card-inner {
+    position: absolute; inset: 0; transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s;
+    border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  
+  /* State: Flipped (Face Down) */
+  .c-card[data-state="flipped"] .c-card-inner { transform: rotateY(180deg); }
+  
+  /* State: Focused (Face Down, Glowing, Scaled) */
+  .c-card[data-state="focused"] { z-index: 9998 !important; }
+  .c-card[data-state="focused"] .c-card-inner {
+    transform: rotateY(180deg) scale(1.15);
+    box-shadow: 0 0 30px var(--accent), 0 0 60px var(--accent-2);
+  }
+  
+  /* State: Revealed (Face Up, Tada!) */
+  .c-card[data-state="revealed"] { z-index: 9998 !important; }
+  .c-card[data-state="revealed"] .c-card-inner {
+    transform: rotateY(0deg) scale(1.2);
+    box-shadow: 0 0 40px #6bffb8;
+  }
+
+  .c-face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border-radius: 16px; overflow: hidden; border: 2px solid rgba(255,255,255,0.1);
+    display: flex; flex-direction: column; background: var(--bg-1);
+    -webkit-user-drag: none;
+  }
+  .c-front img { flex: 1; object-fit: cover; width: 100%; min-height: 0; pointer-events: none; -webkit-user-drag: none; user-select: none; }
+  .c-front .vocab {
+    padding: 18px 12px; text-align: center; font-size: 22px; font-weight: 800; letter-spacing: 0.5px;
+    background: linear-gradient(0deg, rgba(0,0,0,0.95), rgba(0,0,0,0.4)); color: #fff;
+    transition: opacity 0.3s; pointer-events: none;
+  }
+  /* Hide vocab text when not looking at the front */
+  .c-card:not([data-state="initial"]):not([data-state="revealed"]) .c-front .vocab { opacity: 0; }
+  
+  .c-back {
+    background: repeating-linear-gradient(45deg, var(--bg-2) 0, var(--bg-2) 15px, var(--bg-1) 15px, var(--bg-1) 30px);
+    transform: rotateY(180deg); display: flex; align-items: center; justify-content: center;
+    border: 2px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+  }
+  .c-back::after {
+    content: '✨'; font-size: 54px; opacity: 0.15; filter: grayscale(1);
+  }
+</style>
+</head>
+<body>
+<div class="app" role="application" aria-label="Vocabulary Memory Game">
+  <header>
+    <div class="logo" aria-hidden="true">
+      <!-- simple futuristic glyph -->
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3" width="18" height="18" rx="4" fill="url(#g)"/>
+        <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#6be7ff"/><stop offset="1" stop-color="#7a5cff"/></linearGradient></defs>
+      </svg>
+    </div>
+    <div>
+      <h1>Vocabulary Memory</h1>
+      <p class="lead">Upload images, assign words, then play a refined picture ↔ vocabulary memory game.</p>
+    </div>
+  </header>
+
+  <div class="top">
+    <div class="panel" aria-labelledby="setup-heading">
+      <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;">
+        <div>
+          <div class="controls" role="group" aria-label="Upload controls">
+            <label class="file-btn" title="Upload images">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="opacity:.95"><path d="M12 3v10" stroke="#021026" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 7l4-4 4 4" stroke="#021026" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span style="color:var(--accent);">Choose Images</span>
+              <input id="fileInput" type="file" accept="image/*" multiple aria-label="Choose images to upload" />
+            </label>
+
+            <button id="shufflePairs" class="btn" title="Shuffle pairs">Shuffle</button>
+            <button id="clearAll" class="btn" title="Clear all">Clear</button>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <div class="pill" id="pairCount">Pairs 0</div>
+          <button id="startCasino" class="btn" style="color: var(--accent); border-color: rgba(107,231,255,0.2); border-width: 1px; border-style: solid;" disabled>Casino Shuffle</button>
+          <button id="startGame" class="btn primary" disabled>Play Memory</button>
+        </div>
+      </div>
+
+      <h3 id="setup-heading" style="margin-top:14px;color:#dff6ff">Uploaded Pictures and Vocabulary</h3>
+      <div id="pairsContainer" class="pairs" aria-live="polite" aria-atomic="true"></div>
+      <p class="muted" style="margin-top:10px" id="hint">Tip: Type the vocabulary for each image. Press Enter to move to the next input.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Fullscreen Memory Board -->
+<div id="memoryBoard" class="memory-board-overlay">
+  <div class="memory-controls-bar">
+    <div style="display:flex;gap:12px;">
+      <button id="exitMemory" class="btn" style="background: rgba(255,255,255,0.1); color: #fff;">Exit Memory</button>
+      <button id="resetMemory" class="btn" style="border: 1px solid rgba(255,255,255,0.1);">Reset Game</button>
+      <button id="revealAll" class="btn">Peek Cards</button>
+    </div>
+    <div class="memory-stats">
+      <div>Moves <span id="matchMoves">0</span></div>
+      <div>Matches <span id="matchCount">0</span> / <span id="totalPairs">0</span></div>
+    </div>
+  </div>
+  <div id="gameGrid" class="memory-grid" role="grid" aria-label="Game board"></div>
+</div>
+
+<!-- Casino Mode Board -->
+<div id="casinoBoard" class="casino-board">
+  <div class="casino-controls">
+    <button id="exitCasino" class="btn" style="background: rgba(255,255,255,0.1); color: #fff;">Exit Casino</button>
+    <button id="autoWash" class="btn primary">Auto-Wash</button>
+  </div>
+</div>
+
+<!-- Confetti canvas -->
+<canvas id="confetti" style="position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9999;display:none"></canvas>
+
+<script>
+/* Futuristic Vocabulary Memory - polished UI + animations
+   - Single-file app
+   - Accessibility: keyboard, ARIA
+   - Performance: CSS-driven animations, minimal DOM updates
+*/
+
+(() => {
+  const fileInput = document.getElementById('fileInput');
+  const pairsContainer = document.getElementById('pairsContainer');
+  const startBtn = document.getElementById('startGame');
+  const clearAllBtn = document.getElementById('clearAll');
+  const shufflePairsBtn = document.getElementById('shufflePairs');
+  const hintEl = document.getElementById('hint');
+  const pairCountEl = document.getElementById('pairCount');
+  
+  // Memory Elements
+  const memoryBoard = document.getElementById('memoryBoard');
+  const gameGrid = document.getElementById('gameGrid');
+  const exitMemoryBtn = document.getElementById('exitMemory');
+  const resetMemoryBtn = document.getElementById('resetMemory');
+  const revealAllBtn = document.getElementById('revealAll');
+  const matchCountEl = document.getElementById('matchCount');
+  const matchMovesEl = document.getElementById('matchMoves');
+  const totalPairsEl = document.getElementById('totalPairs');
+  const confettiCanvas = document.getElementById('confetti');
+  
+  // Casino Elements
+  const startCasinoBtn = document.getElementById('startCasino');
+  const casinoBoard = document.getElementById('casinoBoard');
+  const exitCasinoBtn = document.getElementById('exitCasino');
+  const autoWashBtn = document.getElementById('autoWash');
+
+  let pairs = []; // {id, imgData, vocab}
+  let gameState = null; // {cards, flipped, matches, moves, startTime}
+
+  // small helpers
+  const uid = () => Math.random().toString(36).slice(2,9);
+  const readFileAsDataURL = file => new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(fr.result);
+    fr.onerror = rej;
+    fr.readAsDataURL(file);
+  });
+  const shuffle = arr => {
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  };
+  const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // render pairs list
+  function renderPairs(){
+    pairsContainer.innerHTML = '';
+    pairs.forEach((p, idx) => {
+      const el = document.createElement('div');
+      el.className = 'pair';
+      el.innerHTML = `
+        <img class="thumb" src="${p.imgData}" alt="uploaded picture ${idx+1}" />
+        <input type="text" aria-label="Vocabulary for image ${idx+1}" placeholder="Type vocabulary" value="${p.vocab||''}" data-id="${p.id}" />
+        <button class="remove" aria-label="Remove picture ${idx+1}" data-id="${p.id}">✕</button>
+      `;
+      pairsContainer.appendChild(el);
+    });
+
+    // wire events
+    pairsContainer.querySelectorAll('input[type="text"]').forEach((inp, i, list) => {
+      inp.addEventListener('input', e => {
+        const id = e.target.dataset.id;
+        const p = pairs.find(x=>x.id===id);
+        if(p) p.vocab = e.target.value.trim();
+        updateStartState();
+      });
+      inp.addEventListener('keydown', e => {
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          const inputs = Array.from(pairsContainer.querySelectorAll('input[type="text"]'));
+          const idx = inputs.indexOf(e.target);
+          if(idx >= 0 && idx < inputs.length-1) inputs[idx+1].focus();
+        }
+      });
+    });
+
+    pairsContainer.querySelectorAll('.remove').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const id = e.target.dataset.id;
+        pairs = pairs.filter(x=>x.id!==id);
+        renderPairs();
+        updateStartState();
+      });
+    });
+
+    pairCountEl.textContent = `Pairs ${pairs.length}`;
+    totalPairsEl.textContent = pairs.length;
+  }
+
+  function updateStartState(){
+    const readyCount = pairs.filter(p => p.vocab && p.vocab.length>0).length;
+    startBtn.disabled = !(pairs.length>0 && readyCount === pairs.length);
+    startCasinoBtn.disabled = !(pairs.length>0 && readyCount === pairs.length);
+    hintEl.textContent = pairs.length ? 'Assign vocabulary to each image to enable Start' : 'Upload images and assign words to enable the game.';
+  }
+
+  // Handle incoming image files (from input, paste, or drop)
+  async function handleFiles(fileList) {
+    const files = Array.from(fileList || []).filter(f => f.type.startsWith('image/'));
+    if(!files.length) return;
+    
+    const startIndex = pairs.length;
+    for(const f of files){
+      const data = await readFileAsDataURL(f);
+      pairs.push({id:uid(), imgData:data, vocab:''});
+    }
+    renderPairs();
+    updateStartState();
+    
+    // subtle entrance animation for newly added items
+    const children = Array.from(pairsContainer.children);
+    for(let i = startIndex; i < children.length; i++) {
+      const el = children[i];
+      el.style.opacity = 0; el.style.transform = 'translateY(8px)';
+      requestAnimationFrame(()=> {
+        setTimeout(()=> { el.style.transition = 'all .36s cubic-bezier(.2,.9,.2,1)'; el.style.opacity=1; el.style.transform='translateY(0)'; }, (i - startIndex)*40);
+      });
+    }
+  }
+
+  // file input
+  fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+    fileInput.value = '';
+  });
+
+  // Global paste event listener for Snipping Tool & clipboard
+  document.addEventListener('paste', (e) => {
+    if(e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
+      const hasImage = Array.from(e.clipboardData.files).some(f => f.type.startsWith('image/'));
+      if(hasImage) {
+        e.preventDefault(); // Prevent default if pasting an image
+        handleFiles(e.clipboardData.files);
+      }
+    }
+  });
+
+  // Global drag & drop event listeners
+  const leftPanel = document.querySelector('.top .panel');
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    document.body.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+  });
+
+  document.body.addEventListener('dragenter', (e) => {
+    if (e.dataTransfer.types.includes('Files')) leftPanel.classList.add('drag-over');
+  });
+  
+  document.body.addEventListener('dragover', (e) => {
+    if (e.dataTransfer.types.includes('Files')) leftPanel.classList.add('drag-over');
+  });
+
+  document.body.addEventListener('dragleave', (e) => {
+    // Only remove if we are leaving the actual document body (or dragging to an external window)
+    if(e.target === document.body || e.relatedTarget === null || e.relatedTarget === document.documentElement) {
+      leftPanel.classList.remove('drag-over');
+    }
+  });
+
+  document.body.addEventListener('drop', (e) => {
+    leftPanel.classList.remove('drag-over');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
+    }
+  });
+
+  clearAllBtn.addEventListener('click', () => {
+    if(!confirm('Clear all uploaded pictures and vocabulary?')) return;
+    pairs = [];
+    renderPairs();
+    updateStartState();
+    resetGame();
+  });
+
+  shufflePairsBtn.addEventListener('click', () => {
+    pairs = shuffle(pairs);
+    renderPairs();
+  });
+
+  // --- Play Memory Game Logic ---
+  startBtn.addEventListener('click', () => {
+    if(pairs.length === 0) return;
+    
+    memoryBoard.style.display = 'block';
+    
+    const cards = [];
+    pairs.forEach(p => {
+      cards.push({pairId:p.id, kind:'image', content:p.imgData});
+      cards.push({pairId:p.id, kind:'text', content:p.vocab});
+    });
+    
+    const shuffled = shuffle(cards);
+    gameState = {
+      cards: shuffled.map((c,i) => ({...c, index:i, matched:false})),
+      flipped: [],
+      matches: 0,
+      moves: 0,
+      startTime: Date.now(),
+      locked: false // Prevent clicking during animation
+    };
+    
+    matchCountEl.textContent = '0';
+    matchMovesEl.textContent = '0';
+    totalPairsEl.textContent = pairs.length;
+    
+    renderMemoryGame();
+  });
+
+  exitMemoryBtn.addEventListener('click', () => {
+    memoryBoard.style.display = 'none';
+    resetGame();
+  });
+
+  // render game grid
+  function renderMemoryGame(){
+    gameGrid.innerHTML = '';
+    if(!gameState) return;
+    
+    const total = gameState.cards.length;
+    const cols = Math.ceil(Math.sqrt(total));
+    gameGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+    gameState.cards.forEach((card, idx) => {
+      const c = document.createElement('div');
+      c.className = 'm-card';
+      c.dataset.index = idx;
+      
+      const contentHtml = card.kind === 'image' 
+        ? `<img src="${card.content}" alt="vocabulary image">` 
+        : `<div class="word">${escapeHtml(card.content)}</div>`;
+        
+      c.innerHTML = `
+        <div class="m-card-inner">
+          <div class="m-face m-back">?</div>
+          <div class="m-face m-front ${card.kind === 'text' ? 'text-only' : ''}">
+            ${contentHtml}
+          </div>
+        </div>
+      `;
+      
+      // small staggered entrance
+      c.style.opacity = 0; c.style.transform = 'translateY(20px) scale(.9)';
+      setTimeout(()=> { 
+        c.style.transition = 'all .4s cubic-bezier(.2,.9,.2,1)'; 
+        c.style.opacity = 1; 
+        c.style.transform = 'none'; 
+        setTimeout(() => c.style.transition = '', 400);
+      }, idx * 40);
+
+      // click events
+      c.addEventListener('click', onMemoryCardClick);
+
+      gameGrid.appendChild(c);
+    });
+  }
+
+  function onMemoryCardClick(e){
+    if(!gameState || gameState.locked) return;
+    
+    const cardEl = e.currentTarget;
+    const idx = Number(cardEl.dataset.index);
+    const card = gameState.cards[idx];
+    
+    if(card.matched || gameState.flipped.includes(idx)) return;
+
+    // Flip card
+    cardEl.classList.add('flipped');
+    gameState.flipped.push(idx);
+
+    if(gameState.flipped.length === 2){
+      gameState.locked = true; // Lock board
+      gameState.moves++;
+      matchMovesEl.textContent = gameState.moves;
+      
+      const [aIdx,bIdx] = gameState.flipped;
+      const a = gameState.cards[aIdx];
+      const b = gameState.cards[bIdx];
+
+      if(a.pairId === b.pairId && a.kind !== b.kind){
+        // Match!
+        a.matched = b.matched = true;
+        gameState.matches++;
+        matchCountEl.textContent = gameState.matches;
+        
+        const els = Array.from(gameGrid.children);
+        [aIdx,bIdx].forEach(i => {
+          const el = els[i];
+          if(el) {
+            el.classList.add('matched');
+            // Ensure they stay flipped
+            el.classList.add('flipped');
+          }
+        });
+        
+        gameState.flipped = [];
+        gameState.locked = false;
+        
+        if(gameState.matches === pairs.length){
+          celebrate();
+        }
+      } else {
+        // No match - flip back
+        setTimeout(() => {
+          const els = Array.from(gameGrid.children);
+          [aIdx,bIdx].forEach(i => {
+            const el = els[i];
+            if(el) el.classList.remove('flipped');
+          });
+          gameState.flipped = [];
+          gameState.locked = false;
+        }, 1200); // Give them time to read both cards
+      }
+    }
+  }
+
+  resetMemoryBtn.addEventListener('click', () => {
+    if(!gameState) return;
+    if(!confirm('Restart this memory game?')) return;
+    startBtn.click(); // Re-trigger start logic
+  });
+
+  revealAllBtn.addEventListener('click', () => {
+    if(!gameState) return;
+    const els = Array.from(gameGrid.children);
+    els.forEach(el => el.classList.add('flipped'));
+    
+    gameState.locked = true;
+    
+    setTimeout(() => {
+      els.forEach((el, i) => {
+        if(!gameState.cards[i].matched) el.classList.remove('flipped');
+      });
+      gameState.locked = false;
+      gameState.flipped = []; // reset any half-flipped state
+    }, 2000);
+  });
+
+  function resetGame(){
+    gameState = null;
+    gameGrid.innerHTML = '';
+    matchCountEl.textContent = '0';
+    matchMovesEl.textContent = '0';
+  }
+
+  // --- Casino Shuffle Logic ---
+  let casinoMaxZ = 100;
+  let draggedCard = null;
+  let dragStartX = 0, dragStartY = 0;
+  let cardInitLeft = 0, cardInitTop = 0;
+  let dragHasMoved = false;
+
+  startCasinoBtn.addEventListener('click', () => {
+    if(pairs.length === 0) return;
+    
+    // Setup Board
+    casinoBoard.style.display = 'block';
+    
+    // Clear old cards, keep controls
+    Array.from(casinoBoard.children).forEach(child => {
+      if(!child.classList.contains('casino-controls')) child.remove();
+    });
+
+    // Layout math (center a grid of cards)
+    const cardW = 220, cardH = 310, gap = 40;
+    const cols = Math.ceil(Math.sqrt(pairs.length));
+    const rows = Math.ceil(pairs.length / cols);
+    const startX = (window.innerWidth - (cols * cardW + (cols - 1) * gap)) / 2;
+    const startY = (window.innerHeight - (rows * cardH + (rows - 1) * gap)) / 2;
+
+    pairs.forEach((p, i) => {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      const x = startX + col * (cardW + gap);
+      const y = startY + row * (cardH + gap);
+
+      const card = document.createElement('div');
+      card.className = 'c-card';
+      card.dataset.state = 'initial'; // initial (face up)
+      card.style.left = `${Math.max(20, x)}px`;
+      card.style.top = `${Math.max(80, y)}px`;
+      card.style.zIndex = ++casinoMaxZ;
+
+      card.innerHTML = `
+        <div class="c-card-inner">
+          <div class="c-face c-front">
+            <img src="${p.imgData}" draggable="false" />
+            <div class="vocab">${escapeHtml(p.vocab)}</div>
+          </div>
+          <div class="c-face c-back"></div>
+        </div>
+      `;
+      
+      // Entrance animation
+      card.style.opacity = 0;
+      card.style.transform = 'translateY(20px) scale(0.9)';
+      setTimeout(() => {
+        card.style.transition = 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
+        card.style.opacity = 1;
+        card.style.transform = 'none';
+        // Remove transition after entrance to avoid drag lag, CSS hover handles the rest
+        setTimeout(() => card.style.transition = '', 500);
+      }, i * 60);
+
+      casinoBoard.appendChild(card);
+    });
+  });
+
+  exitCasinoBtn.addEventListener('click', () => {
+    casinoBoard.style.display = 'none';
+  });
+
+  // Drag & Drop Physics (Pointer Events for Mouse/Touch)
+  casinoBoard.addEventListener('pointerdown', e => {
+    const card = e.target.closest('.c-card');
+    if(!card) return;
+    if(e.button !== 0 && e.type.startsWith('mouse')) return; // Left click only
+
+    draggedCard = card;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    cardInitLeft = parseFloat(card.style.left) || 0;
+    cardInitTop = parseFloat(card.style.top) || 0;
+    dragHasMoved = false;
+
+    card.style.zIndex = ++casinoMaxZ;
+    card.setPointerCapture(e.pointerId);
+  });
+
+  casinoBoard.addEventListener('pointermove', e => {
+    if(!draggedCard) return;
+
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+
+    // Threshold to distinguish click from drag
+    if(!dragHasMoved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      dragHasMoved = true;
+      draggedCard.classList.add('dragging');
+    }
+
+    if(dragHasMoved) {
+      let newX = cardInitLeft + dx;
+      let newY = cardInitTop + dy;
+
+      // Keep mostly within screen bounds
+      newX = Math.max(-100, Math.min(newX, window.innerWidth - 120));
+      newY = Math.max(-100, Math.min(newY, window.innerHeight - 200));
+
+      draggedCard.style.left = `${newX}px`;
+      draggedCard.style.top = `${newY}px`;
+
+      // Velocity rotation for physical feel
+      const rot = Math.max(-25, Math.min(25, dx * 0.15));
+      draggedCard.style.transform = `rotate(${rot}deg)`;
+    }
+  });
+
+  casinoBoard.addEventListener('pointerup', e => {
+    if(!draggedCard) return;
+
+    if(dragHasMoved) {
+      draggedCard.classList.remove('dragging');
+      // Intentionally leave the slight rotation! Adds to the messy "shuffled" feel.
+    } else {
+      // It was a click!
+      handleCasinoClick(draggedCard);
+    }
+
+    draggedCard.releasePointerCapture(e.pointerId);
+    draggedCard = null;
+  });
+
+  function handleCasinoClick(card) {
+    const state = card.dataset.state;
+
+    if(state === 'initial') {
+      // Flip face down
+      card.dataset.state = 'flipped';
+    } 
+    else if(state === 'flipped') {
+      // Unfocus others
+      document.querySelectorAll('.c-card[data-state="focused"]').forEach(c => {
+        c.dataset.state = 'flipped';
+      });
+      // Focus this one
+      card.dataset.state = 'focused';
+      card.style.zIndex = ++casinoMaxZ;
+    }
+    else if(state === 'focused') {
+      // Tada!
+      card.dataset.state = 'revealed';
+      card.style.zIndex = ++casinoMaxZ;
+      celebrate();
+    }
+    else if(state === 'revealed') {
+      // Reset back to flipped so they can play more
+      card.dataset.state = 'flipped';
+    }
+  }
+
+  // Auto-Wash (Scramble)
+  autoWashBtn.addEventListener('click', () => {
+    const cards = document.querySelectorAll('.c-card');
+    cards.forEach(card => {
+      card.classList.add('auto-washing');
+      
+      const newX = Math.random() * (window.innerWidth - 250) + 20;
+      const newY = Math.random() * (window.innerHeight - 350) + 80;
+      const rot = (Math.random() - 0.5) * 80; // -40 to 40 deg
+      
+      card.style.left = `${newX}px`;
+      card.style.top = `${newY}px`;
+      card.style.transform = `rotate(${rot}deg)`;
+      card.style.zIndex = ++casinoMaxZ;
+      
+      setTimeout(() => {
+        card.classList.remove('auto-washing');
+      }, 850);
+    });
+  });
+
+  // celebration confetti (lightweight)
+  function celebrate(){
+    try {
+      confettiCanvas.style.display = 'block';
+      const ctx = confettiCanvas.getContext('2d');
+      const DPR = window.devicePixelRatio || 1;
+      confettiCanvas.width = window.innerWidth * DPR;
+      confettiCanvas.height = window.innerHeight * DPR;
+      confettiCanvas.style.width = window.innerWidth + 'px';
+      confettiCanvas.style.height = window.innerHeight + 'px';
+      ctx.scale(DPR, DPR);
+
+      const pieces = [];
+      const colors = ['#6be7ff','#7a5cff','#ffd36b','#6bffb8'];
+      for(let i=0;i<80;i++){
+        pieces.push({
+          x: Math.random()*window.innerWidth,
+          y: Math.random()*-window.innerHeight,
+          vx: (Math.random()-0.5)*3,
+          vy: Math.random()*4+2,
+          size: Math.random()*8+4,
+          color: colors[Math.floor(Math.random()*colors.length)],
+          rot: Math.random()*360,
+          vr: (Math.random()-0.5)*8
+        });
+      }
+      let t0 = null;
+      function frame(t){
+        if(!t0) t0 = t;
+        const dt = (t - t0)/1000;
+        t0 = t;
+        ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+        pieces.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.06;
+          p.rot += p.vr;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot * Math.PI/180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+          ctx.restore();
+        });
+        // stop after 3.2s
+        if(performance.now() - startTime < 3200) requestAnimationFrame(frame);
+        else { ctx.clearRect(0,0,window.innerWidth,window.innerHeight); confettiCanvas.style.display='none'; }
+      }
+      const startTime = performance.now();
+      requestAnimationFrame(frame);
+    } catch(e){
+      // silent fail if canvas not supported
+      confettiCanvas.style.display = 'none';
+    }
+  }
+
+  // initial render
+  renderPairs();
+  updateStartState();
+
+  // expose for debugging (optional)
+  window._vocabApp = { pairs, renderPairs, resetGame };
+})();
+</script>
+</body>
+</html>
