@@ -1,3 +1,13 @@
+<!--
+========================================================
+AUTHORSHIP & PROVENANCE
+========================================================
+Author: Trae AI / Autonomous Pair Programmer
+Creation Epoch: 2026-04-28T22:32:48.978362
+Functional Teleology: Absolute pixel-locked rigidity for Picker UI to prevent any dimensional fluctuation regardless of string length. Exhaustive architectural decoupling for the 'Delete Class' routine, ensuring all associative memory (DOM tabs, pool state, class data) is eradicated seamlessly.
+Archival Delta: Version 10 (Bifurcated from Version 9)
+========================================================
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -547,8 +557,8 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    height: 100%;
+    height: max-content;
+    align-self: start;
     min-height: 150px;
     transition: all 0.2s;
   }
@@ -1286,6 +1296,25 @@
     color: var(--primary);
     background: #f0f7f4;
   }
+  #delete-class-btn {
+    background: #fff;
+    border: 1px dashed #ff6b6b;
+    color: #ff6b6b;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  #delete-class-btn:hover {
+    border-style: solid;
+    color: #c0392b;
+    background: #ffebee;
+  }
   /* --- History Modal & Graphs --- */
   #history-modal {
     border: none;
@@ -1320,6 +1349,7 @@
     border-radius: 8px;
     padding: 3px;
     gap: 2px;
+    justify-self: center;
   }
   .h-view-btn {
     border: none;
@@ -1331,6 +1361,7 @@
     color: #666;
     font-weight: 600;
     transition: all 0.2s ease;
+    white-space: nowrap;
   }
   .h-view-btn.active {
     background: #fff;
@@ -1641,6 +1672,7 @@
     color: #666;
     font-weight: 500;
     transition: all 0.2s ease;
+    white-space: nowrap;
   }
   .view-btn.active {
     background: #fff;
@@ -1669,6 +1701,8 @@
     flex-direction: column;
     gap: 12px;
     transition: transform 0.2s;
+    align-self: start; /* Prevents grid from stretching it to match taller siblings */
+    height: max-content; /* Expands dynamically to fit all children */
   }
   .group-pod:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
   .group-pod-header {
@@ -1705,6 +1739,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
   }
   .group-action-btn:hover { opacity: 0.9; }
   .group-members-list {
@@ -1978,7 +2013,7 @@
     overflow: hidden;
     word-break: break-word;
 }
-.picker-emoji-lg { font-size: 5rem; display: block; margin-bottom: 10px; }
+.picker-emoji-lg { font-size: 7.5rem; display: block; margin-bottom: 10px; text-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
 .picker-btn-main {
     background: var(--accent);
@@ -2051,8 +2086,14 @@
 }
 @media (max-width: 760px) {
   .picker-name-shell {
-    min-height: 184px;
-    padding: 18px 18px 18px 18px;
+    /* Absolute Pixel Locks for Mobile */
+    height: 184px !important;
+    min-height: 184px !important;
+    max-height: 184px !important;
+    width: 100% !important;
+    min-width: 100% !important; /* Release horizontal lock for mobile */
+    box-sizing: border-box;
+    padding: 18px;
     flex-direction: column;
     gap: 14px;
   }
@@ -2295,6 +2336,7 @@
     <div id="class-tabs-container">
       <div id="class-tabs"></div>
       <button id="add-class-btn" title="Add New Class">+</button>
+      <button id="delete-class-btn" title="Delete Current Class" onclick="deleteCurrentClass()">-</button>
 
       <!-- View Toggle -->
       <div class="view-toggle">
@@ -2384,7 +2426,7 @@
       </div>
 
       <div class="history-header-controls">
-        <button onclick="addManualSession()" style="border:1px solid #ddd; background:#f9f9f9; cursor:pointer; padding:6px 12px; border-radius:8px; font-weight:600; color:#555;" title="Add Past Session">➕ Add Past</button>
+        <button onclick="addManualSession()" style="border:1px solid #ddd; background:#f9f9f9; cursor:pointer; padding:6px 12px; border-radius:8px; font-weight:600; color:#555; white-space:nowrap;" title="Add Past Session">➕ Add Past</button>
         <select id="history-filter" style="padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.9rem; background:#fff;">
           <option value="all">All Classes</option>
         </select>
@@ -3114,17 +3156,20 @@ function renderGroupView() {
         const pod = document.createElement('div');
         pod.className = 'group-pod';
         
-        const memberListHtml = members.map(m => `
+        const memberListHtml = members.map(m => {
+             const isDebt = m.count < 0 ? 'color: #c0392b; font-weight: bold;' : '';
+             return `
             <div class="group-member-item">
                 <div class="member-info">
                     <span>${m.emoji}</span>
-                    <span>${m.name}</span>
+                    <span style="${m.isAbsent ? 'text-decoration: line-through; opacity: 0.5;' : ''}">${m.name}</span>
                 </div>
-                <div class="member-stars">
+                <div class="member-stars" style="${isDebt}">
                     ${m.count} ⭐
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
         
         pod.innerHTML = `
             <div class="group-pod-header">
@@ -3135,6 +3180,9 @@ function renderGroupView() {
                 <div class="group-pod-controls">
                     <button class="group-action-btn" onclick="giveStarToGroup('${group.id}')">
                         <span>⭐</span> Give All
+                    </button>
+                    <button class="group-action-btn" style="background: #ff6b6b; color: white;" onclick="removeStarFromGroup('${group.id}')">
+                        <span>➖</span> Remove All
                     </button>
                 </div>
             </div>
@@ -3153,17 +3201,20 @@ function renderGroupView() {
         pod.className = 'group-pod';
         pod.style.border = '2px dashed #eee';
         
-         const memberListHtml = unassigned.map(m => `
+         const memberListHtml = unassigned.map(m => {
+             const isDebt = m.count < 0 ? 'color: #c0392b; font-weight: bold;' : '';
+             return `
             <div class="group-member-item" style="background:#fff;">
                 <div class="member-info">
                     <span>${m.emoji}</span>
-                    <span>${m.name}</span>
+                    <span style="${m.isAbsent ? 'text-decoration: line-through; opacity: 0.5;' : ''}">${m.name}</span>
                 </div>
-                <div class="member-stars">
+                <div class="member-stars" style="${isDebt}">
                     ${m.count} ⭐
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
         
         pod.innerHTML = `
             <div class="group-pod-header">
@@ -3185,7 +3236,8 @@ function giveStarToGroup(groupId) {
     
     let updated = false;
     activeClass.students.forEach(s => {
-        if (s.groupId === groupId) {
+        // Enforce strict absentee logic
+        if (s.groupId === groupId && !s.isAbsent) {
             s.count++;
             logTransaction(s.name, 'ADD'); // LEDGER
             updated = true;
@@ -3220,6 +3272,40 @@ function giveStarToGroup(groupId) {
         saveData();
         renderGroupView(); // Re-render immediately
         showToast(`Added star to group!`);
+    }
+}
+
+function removeStarFromGroup(groupId) {
+    const activeClass = classesData[currentClassIndex];
+    if (!activeClass) return;
+    
+    let updated = false;
+    activeClass.students.forEach(s => {
+        // Enforce strict absentee logic
+        if (s.groupId === groupId && !s.isAbsent) {
+            s.count--;
+            logTransaction(s.name, 'REMOVE'); // LEDGER
+            updated = true;
+        }
+    });
+    
+    if (updated) {
+        // Play removal sound (lower pitch beep)
+        try { 
+             const ctx = new (window.AudioContext || window.webkitAudioContext)();
+             const osc = ctx.createOscillator();
+             const gain = ctx.createGain();
+             osc.connect(gain);
+             gain.connect(ctx.destination);
+             osc.frequency.setValueAtTime(440, ctx.currentTime);
+             gain.gain.setValueAtTime(0.1, ctx.currentTime);
+             osc.start();
+             osc.stop(ctx.currentTime + 0.1);
+        } catch(e) {}
+        
+        saveData();
+        renderGroupView(); // Re-render immediately
+        showToast(`Removed star from group!`);
     }
 }
 
@@ -4235,6 +4321,55 @@ function forceRefreshView() {
  * Switches the active class view.
  * @param {number} index - The index of the class to switch to.
  */
+
+/**
+ * Exhaustively deletes the currently active class and all associated data/state.
+ */
+function deleteCurrentClass() {
+    if (classesData.length === 0) return;
+    
+    const activeClass = classesData[currentClassIndex];
+    const confirmDelete = confirm(`WARNING: You are about to permanently delete "${activeClass.name}".\n\nThis will erase all students, groups, and star history associated with this class.\n\nProceed?`);
+    
+    if (confirmDelete) {
+        // 1. Erase from core data structure
+        classesData.splice(currentClassIndex, 1);
+        
+        // 2. Erase from Picker Memory (Deep Clean)
+        pickerState.pool = [];
+        pickerState.history = [];
+        pickerState.lastGroupId = null;
+        
+        // 3. Handle Edge Case: No classes left
+        if (classesData.length === 0) {
+            classesData.push({
+                id: 'class-' + Date.now(),
+                name: 'New Class',
+                students: [],
+                groups: []
+            });
+            currentClassIndex = 0;
+        } else {
+            // Shift focus to the nearest valid class
+            if (currentClassIndex >= classesData.length) {
+                currentClassIndex = classesData.length - 1;
+            }
+        }
+        
+        // 4. Commit to LocalStorage
+        saveData();
+        
+        // 5. Force UI Re-renders (DOM Synchronization)
+        renderClassTabs(); // Removes the tab from the UI
+        switchClass(currentClassIndex); // Reloads dashboard with new class data
+        if (currentAppState.viewMode === 'picker') {
+            renderPickerView(); // Force picker UI to sync with empty/new pool
+        }
+        
+        showToast("Class and all associated data permanently deleted.");
+    }
+}
+
 function switchClass(index) {
   if (index === currentClassIndex) return;
 
@@ -6087,6 +6222,7 @@ window.removeStarFor = removeStarFor;
 window.addNewStudent = addNewStudent;
 window.resetAllStars = resetAllStars;
 window.startDurationTimer = startDurationTimer; // For welcome overlay
+window.deleteCurrentClass = deleteCurrentClass;
 
 
 /**
@@ -6129,6 +6265,7 @@ function renderPickerView() {
         // Reset/Init Pool
         pickerState.pool = [...activeClass.students]; // Shallow copy
         pickerState.history = [];
+        pickerState.lastGroupId = null;
     }
 
     // 3. Render Stage (Left)
@@ -6202,9 +6339,13 @@ function spinPicker() {
     let iterations = 0;
     const maxIterations = 20; // How many flips before stopping
     const interval = setInterval(() => {
+        // Generate valid pool (alternating groups)
+        let validPool = pickerState.pool.filter(s => s.groupId && s.groupId !== pickerState.lastGroupId);
+        if (validPool.length === 0) validPool = pickerState.pool;
+        
         // Show random temp student
-        const randIndex = Math.floor(Math.random() * pickerState.pool.length);
-        const temp = pickerState.pool[randIndex];
+        const randIndex = Math.floor(Math.random() * validPool.length);
+        const temp = validPool[randIndex];
         nameDisplay.textContent = temp.name;
         emojiDisplay.textContent = temp.emoji;
         fitPickerNameText();
@@ -6220,10 +6361,19 @@ function spinPicker() {
 }
 
 function finalizePick() {
-    // 1. Pick Winner
-    const winnerIndex = Math.floor(Math.random() * pickerState.pool.length);
-    const winner = pickerState.pool.splice(winnerIndex, 1)[0]; // Remove from pool
+    // 1. Pick Winner (Group Aware)
+    let validPool = pickerState.pool.filter(s => s.groupId && s.groupId !== pickerState.lastGroupId);
+    if (validPool.length === 0) validPool = pickerState.pool;
+    
+    const validWinnerIndex = Math.floor(Math.random() * validPool.length);
+    const winner = validPool[validWinnerIndex];
+    
+    // Remove from main pool
+    const winnerIndex = pickerState.pool.findIndex(s => s.name === winner.name);
+    pickerState.pool.splice(winnerIndex, 1);
+    
     pickerState.history.unshift(winner); // Add to history top
+    pickerState.lastGroupId = winner.groupId; // Remember group for next spin
     pickerState.isSpinning = false;
 
     // 2. UI Update
@@ -6273,6 +6423,7 @@ function fitPickerNameText() {
 function resetPickerPool() {
     pickerState.pool = []; 
     pickerState.history = [];
+    pickerState.lastGroupId = null;
     renderPickerView();
 }
 
