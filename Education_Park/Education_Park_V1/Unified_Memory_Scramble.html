@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Educational Apps: Memory & Scramble</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Reset basic elements */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden; /* Main window shouldn't scroll, let apps handle it */
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    /* App Switcher Styles */
+    #appSwitcher {
+      position: fixed;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100000;
+      display: flex;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 6px 10px;
+      border-radius: 30px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .switcher-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.8);
+      padding: 8px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .switcher-btn:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+    .switcher-btn.active {
+      background: #ffffff;
+      color: #000000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    /* --- Memory Game CSS --- */
+
+  /* Theme variables */
+  :root{
+    --bg-1: #0b1020;
+    --bg-2: #071028;
+    --glass: rgba(255,255,255,0.04);
+    --muted: #9aa7c7;
+    --accent: #6be7ff;
+    --accent-2: #7a5cff;
+    --neon: linear-gradient(90deg,var(--accent),var(--accent-2));
+    --card-size: 120px;
+    --gap: 14px;
+    --radius: 14px;
+    --glass-border: rgba(255,255,255,0.06);
+    --glass-highlight: rgba(255,255,255,0.02);
+    --glass-strong: rgba(255,255,255,0.06);
+    --glass-blur: 8px;
+    --shadow: 0 8px 30px rgba(2,6,23,0.6);
+    --glass-padding: 14px;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color-scheme: dark;
+  }
+
+  /* Page background and animated gradient */
+  
+  #memoryApp {
+  min-height: 100vh;
+    margin:0;
+    min-height:100%;
+    background:
+      radial-gradient(1200px 600px at 10% 10%, rgba(122,92,255,0.08), transparent 8%),
+      radial-gradient(900px 500px at 90% 90%, rgba(107,231,255,0.06), transparent 10%),
+      linear-gradient(180deg,var(--bg-1),var(--bg-2));
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:36px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  /* App shell */
+  #memoryApp .app{
+    width:1100px;
+    max-width:calc(100% - 48px);
+    border-radius:18px;
+    padding:20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(255,255,255,0.03);
+    backdrop-filter: blur(8px) saturate(120%);
+    overflow:hidden;
+  }
+
+  #memoryApp header{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    margin-bottom:18px;
+  }
+  #memoryApp .logo{
+    width:56px;height:56px;border-radius:12px;
+    background:conic-gradient(from 120deg, rgba(123,92,255,0.18), rgba(107,231,255,0.18));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow: 0 6px 18px rgba(11,16,32,0.6), inset 0 -6px 18px rgba(255,255,255,0.02);
+    border:1px solid rgba(255,255,255,0.04);
+  }
+  #memoryApp .logo svg{filter:drop-shadow(0 6px 18px rgba(0,0,0,0.6));}
+  h1{font-size:20px;margin:0;color:#eaf6ff;letter-spacing:0.2px}
+  #memoryApp p.lead{margin:0;color:var(--muted);font-size:13px}
+
+  /* Layout */
+  #memoryApp .top{
+    display:flex;
+    justify-content:center;
+    align-items:start;
+    margin: 0 auto;
+    max-width: 800px; /* Center the setup panel nicely */
+  }
+
+  /* Left panel: upload + pairs */
+  #memoryApp .panel{
+    width: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;
+    padding:var(--glass-padding);
+    border:1px solid var(--glass-border);
+    box-shadow: 0 6px 18px rgba(2,6,23,0.45);
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  #memoryApp .panel.drag-over {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, rgba(107,231,255,0.06), rgba(122,92,255,0.03));
+    box-shadow: 0 0 20px rgba(107,231,255,0.15);
+  }
+
+  #memoryApp .controls{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom:12px;
+  }
+
+  #memoryApp .file-btn{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    border-radius:10px;
+    background:linear-gradient(180deg, rgba(107,231,255,0.06), rgba(122,92,255,0.04));
+    color:var(--accent);
+    border:1px solid rgba(107,231,255,0.12);
+    cursor:pointer;
+    font-weight:600;
+    transition:transform .18s ease, box-shadow .18s;
+  }
+  #memoryApp .file-btn:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(107,231,255,0.06)}
+  #memoryApp .file-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+  #memoryApp .action-row{display:flex;gap:10px;align-items:center;margin-left:auto}
+  #memoryApp .btn{
+    padding:10px 12px;border-radius:10px;border:0;background:transparent;color:var(--muted);cursor:pointer;font-weight:600;
+    transition:all .18s;
+  }
+  #memoryApp .btn.primary{
+    background:var(--neon);color:#021026;background-clip:padding-box;
+    box-shadow:0 6px 20px rgba(122,92,255,0.12), inset 0 -2px 8px rgba(255,255,255,0.02);
+    color:#021026;
+  }
+  #memoryApp .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+  /* Pairs list */
+  #memoryApp .pairs{
+    display:grid;
+    gap:10px;
+    margin-top:8px;
+  }
+  #memoryApp .pair{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    padding:10px;
+    border-radius:12px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+    border:1px solid rgba(255,255,255,0.02);
+    transition:transform .18s, box-shadow .18s;
+  }
+  #memoryApp .pair:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(2,6,23,0.45)}
+  #memoryApp .thumb{
+    width:84px;height:64px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,0.03);
+    box-shadow: 0 6px 18px rgba(2,6,23,0.45);
+  }
+  #memoryApp .pair input[type="text"]{
+    flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);
+    background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+    color:#eaf6ff;font-weight:600;
+    outline:none;
+    transition:box-shadow .12s, transform .12s;
+  }
+  #memoryApp .pair input[type="text"]:focus{box-shadow:0 6px 18px rgba(107,231,255,0.06);transform:translateY(-2px)}
+  #memoryApp .remove{
+    background:transparent;border:0;color:#ff8b8b;font-weight:700;font-size:18px;cursor:pointer;padding:6px;border-radius:8px;
+  }
+  #memoryApp .remove:hover{transform:scale(1.06)}
+
+  /* --- Fullscreen Memory Board Mode - LIGHT MODE --- */
+  #memoryApp .memory-board-overlay {
+    position: fixed; inset: 0; z-index: 9990;
+    background: #f0f0f5;
+    display: none; overflow: hidden;
+    padding: 0;
+  }
+  #memoryApp .memory-controls-bar {
+    position: fixed; top: 0; left: 0; right: 0; height: 80px;
+    background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+    border-bottom: 2px solid rgba(0,0,0,0.1); z-index: 9999;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+  #memoryApp .memory-stats {
+    font-size: 20px; font-weight: 700; color: #1a202c;
+    display: flex; gap: 24px;
+  }
+  #memoryApp .memory-stats span { color: var(--accent); }
+
+  #memoryApp .memory-grid-container {
+    position: absolute;
+    top: 80px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #memoryApp .memory-grid {
+    display: grid;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0 auto;
+    padding: 12px;
+  }
+
+  /* Large Memory Cards - LIGHT MODE */
+  #memoryApp .m-card {
+    aspect-ratio: 3 / 4;
+    width: 100%;
+    min-width: 120px;
+    max-width: 200px;
+    perspective: 1200px;
+    cursor: pointer;
+    user-select: none; -webkit-user-select: none; -webkit-user-drag: none;
+  }
+  .m-card-inner {
+    position: relative; width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border: 2px solid rgba(0,0,0,0.15);
+  }
+  #memoryApp .m-card.flipped .m-card-inner { transform: rotateY(180deg); }
+  #memoryApp .m-card.matched .m-card-inner {
+    box-shadow: 0 0 30px rgba(0,102,204,0.4);
+    animation: matchPulse 0.9s ease both;
+  }
+
+  #memoryApp .m-face {
+    position: absolute; inset: 0; 
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 14px; overflow: hidden; 
+    display: flex; flex-direction: column; background: #ffffff;
+    -webkit-user-drag: none;
+  }
+
+  #memoryApp .m-back {
+    background: 
+      radial-gradient(circle at center, transparent 30%, rgba(10, 20, 40, 0.1) 100%),
+      repeating-linear-gradient(45deg, rgba(122,92,255,0.05) 0px, rgba(122,92,255,0.05) 2px, transparent 2px, transparent 8px),
+      repeating-linear-gradient(-45deg, rgba(107,231,255,0.05) 0px, rgba(107,231,255,0.05) 2px, transparent 2px, transparent 8px),
+      linear-gradient(135deg, #f8f9fa, #e2e8f0);
+    display: flex; align-items: center; justify-content: center;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.08);
+    border: 8px solid #ffffff;
+    box-sizing: border-box;
+  }
+  
+  /* Inner decorative border for the back */
+  #memoryApp .m-back::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(122,92,255,0.3);
+    border-radius: 6px;
+    pointer-events: none;
+  }
+
+  .m-back-number {
+    font-family: "Georgia", "Times New Roman", serif;
+    font-size: 56px;
+    font-weight: 700;
+    color: #2d3748;
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.8), -1px -1px 0px rgba(0,0,0,0.1);
+    background: linear-gradient(180deg, #4a5568, #1a202c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.15));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+  
+  /* Corner indices for authentic card feel */
+  #memoryApp .m-back::after {
+    content: attr(data-seq);
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-family: "Georgia", "Times New Roman", serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #4a5568;
+  }
+  .m-back-corner-bottom {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    font-family: "Georgia", "Times New Roman", serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #4a5568;
+    transform: rotate(180deg);
+  }
+
+  #memoryApp .m-front {
+    transform: rotateY(180deg);
+    background: #ffffff;
+  }
+  #memoryApp .m-front img {
+    flex: 1; object-fit: cover; width: 100%; min-height: 0;
+    pointer-events: none; -webkit-user-drag: none;
+    filter: brightness(1.05) contrast(1.05);
+  }
+  #memoryApp .m-front .word {
+    padding: 16px 12px; text-align: center; font-size: 16px; font-weight: 800;
+    color: #000; background: #f0f0f5;
+    border-top: 2px solid rgba(0,0,0,0.1);
+    display: flex; align-items: center; justify-content: center;
+    word-break: normal; overflow-wrap: normal; white-space: normal; hyphens: none; line-height: 1.3;
+  }
+
+  /* Text-only card styling */
+  #memoryApp .m-front.text-only {
+    justify-content: center; align-items: center;
+    background: radial-gradient(circle at center, rgba(0,102,204,0.08), transparent), #ffffff;
+  }
+  #memoryApp .m-front.text-only .word {
+    background: none; border: none; font-size: 21px; padding: 24px;
+    color: #000;
+    text-shadow: none;
+  }
+
+  /* small helpers */
+  #memoryApp .muted{color:var(--muted);font-size:13px}
+  #memoryApp .controls-row{display:flex;gap:8px;align-items:center}
+  #memoryApp .pill{padding:8px 10px;border-radius:999px;background:#e2e8f0;border:2px solid rgba(0,0,0,0.1);color:#4a5568;font-weight:700}
+  #memoryApp .sr-only{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+
+  /* responsive */
+  @media (max-width:1100px){
+    .top{flex-direction: column;}
+  }
+
+  /* --- Casino Shuffle Mode - LIGHT MODE --- */
+  #memoryApp .casino-board {
+    position: fixed; inset: 0; z-index: 9990;
+    background: #f0f0f5;
+    border: 4px solid #ccc;
+    box-sizing: border-box;
+    display: none; overflow: hidden;
+    touch-action: none;
+  }
+  #memoryApp .casino-controls {
+    position: absolute; top: 24px; left: 24px; z-index: 99999;
+    display: flex; gap: 12px;
+  }
+  #memoryApp .c-card {
+    position: absolute; width: 220px; height: 310px;
+    perspective: 1200px; cursor: grab;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+  }
+  #memoryApp .c-card.dragging { cursor: grabbing; transition: none; }
+  #memoryApp .c-card.auto-washing { transition: top 0.8s ease-in-out, left 0.8s ease-in-out, transform 0.8s ease-in-out; }
+
+  .c-card-inner {
+    position: absolute; inset: 0; transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border: 2px solid rgba(0,0,0,0.2);
+  }
+
+  .c-card[data-state="flipped"] .c-card-inner { transform: rotateY(180deg); }
+
+  .c-card[data-state="focused"] { z-index: 9998 !important; }
+  .c-card[data-state="focused"] .c-card-inner {
+    transform: rotateY(180deg) scale(1.15);
+    box-shadow: 0 0 0 4px var(--accent), 0 10px 40px rgba(0,0,0,0.3);
+  }
+
+  .c-card[data-state="revealed"] { z-index: 9998 !important; }
+  .c-card[data-state="revealed"] .c-card-inner {
+    transform: rotateY(0deg) scale(1.2);
+    box-shadow: 0 0 0 4px #00aa55, 0 10px 40px rgba(0,0,0,0.3);
+  }
+
+  #memoryApp .c-face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border-radius: 16px; overflow: hidden;
+    border: 2px solid rgba(0,0,0,0.2);
+    display: flex; flex-direction: column;
+    background: #ffffff;
+    -webkit-user-drag: none;
+  }
+  #memoryApp .c-front img {
+    flex: 1; object-fit: cover; width: 100%; min-height: 0;
+    pointer-events: none; -webkit-user-drag: none; user-select: none;
+    filter: brightness(1.05) contrast(1.05);
+  }
+  #memoryApp .c-front .vocab {
+    padding: 18px 12px; text-align: center; font-size: 22px; font-weight: 800; letter-spacing: 0.5px;
+    background: #f0f0f5; color: #000;
+    border-top: 2px solid rgba(0,0,0,0.15);
+    transition: opacity 0.3s; pointer-events: none;
+  }
+  #memoryApp .c-card:not([data-state="initial"]):not([data-state="revealed"]) #memoryApp .c-front .vocab { opacity: 0; }
+
+  #memoryApp .c-back {
+    background: repeating-linear-gradient(45deg, #e0e0e5 0, #e0e0e5 15px, #d0d0d8 15px, #d0d0d8 30px);
+    transform: rotateY(180deg); display: flex; align-items: center; justify-content: center;
+    border: 2px solid rgba(0,0,0,0.15);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+  }
+  #memoryApp .c-back::after {
+    content: '✨'; font-size: 54px; opacity: 0.4; filter: none;
+  }
+
+
+    /* --- Scramble Game CSS --- */
+
+    :root{
+      --scr-bg:#fff7e6;
+      --scr-card1:#ffd6a5;
+      --scr-card2:#ffd3e0;
+      --scr-card3:#cfe8ff;
+      --scr-accent:#ff6f61;
+      --scr-accent-dark:#ff3b2e;
+      --scr-text:#2b2b2b;
+      --scr-muted:#6b6b6b;
+      --scr-teacher-bg: rgba(255, 255, 255, 0.85);
+    }
+    #scrambleApp {
+      height:100%;
+      margin:0;
+      font-family: "Baloo 2", "Comic Sans MS", system-ui, sans-serif;
+      background: linear-gradient(180deg, var(--scr-bg), #fff3d9);
+      color:var(--scr-text);
+      overflow: hidden; /* Prevent scrolling on main body */
+    }
+    /* Full-viewport card container */
+    #scrambleApp .card {
+      width:100vw;
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      box-sizing:border-box;
+      padding:32px;
+      transition:background 400ms ease;
+    }
+    /* playful panel */
+    #scrambleApp .panel {
+      width:min(980px, 92%);
+      height:min(720px, 86vh);
+      border-radius:28px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:space-between;
+      padding:28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75));
+      border:6px solid rgba(255,255,255,0.6);
+      position:relative;
+    }
+    #scrambleApp .top-row{
+      width:100%;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+    #scrambleApp .progress {
+      font-size:1.05rem;
+      color:var(--scr-muted);
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    #scrambleApp .progress .dot{
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background:var(--scr-card1);
+      box-shadow:0 2px 6px rgba(0,0,0,0.08);
+    }
+    #scrambleApp .scramble-area{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:18px;
+      width:100%;
+    }
+    #scrambleApp .scrambled {
+      font-size:clamp(2.4rem, 6vw, 6rem);
+      font-weight:800;
+      letter-spacing:0.06em;
+      color:#3b3b3b;
+      text-align:center;
+      padding:18px 28px;
+      border-radius:18px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.6), rgba(255,255,255,0.4));
+      border:4px dashed rgba(0,0,0,0.06);
+      min-width:60%;
+      word-break:break-word;
+    }
+    #scrambleApp .controls{
+      width:100%;
+      display:flex;
+      justify-content:center;
+      gap:14px;
+      align-items:center;
+      margin-top:6px;
+    }
+    #scrambleApp .btn{
+      background:var(--scr-accent);
+      color:white;
+      border:none;
+      padding:14px 20px;
+      border-radius:14px;
+      font-size:1.05rem;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(255,111,97,0.18);
+      transition:transform 140ms ease, background 140ms ease;
+    }
+    #scrambleApp .btn:active{ transform:translateY(2px); }
+    #scrambleApp .btn.secondary{
+      background:transparent;
+      color:var(--scr-accent);
+      border:3px solid rgba(255,111,97,0.12);
+      font-weight:800;
+      padding:12px 18px;
+      box-shadow: none;
+    }
+    #scrambleApp .btn.ghost{
+      background:transparent;
+      color:var(--scr-muted);
+      border:2px dashed rgba(0,0,0,0.06);
+      padding:10px 14px;
+      font-weight:700;
+      box-shadow: none;
+    }
+    #scrambleApp .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #scrambleApp .answer {
+      font-size:2rem;
+      color: #2e8b57;
+      font-weight:800;
+      margin-top:8px;
+      display:none;
+      background:rgba(46,139,87,0.06);
+      padding:10px 16px;
+      border-radius:12px;
+    }
+    #scrambleApp .nav {
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    #scrambleApp .emoji {
+      font-size:1.6rem;
+      filter:drop-shadow(0 6px 12px rgba(0,0,0,0.08));
+    }
+    #scrambleApp .footer {
+      width:100%;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-top:8px;
+    }
+    #scrambleApp .hint {
+      color:var(--scr-muted);
+      font-size:0.98rem;
+    }
+    
+    /* color themes rotate */
+    #scrambleApp .theme-0 { background: linear-gradient(135deg, var(--scr-card1), #fff1e6); }
+    #scrambleApp .theme-1 { background: linear-gradient(135deg, var(--scr-card2), #fff0f6); }
+    #scrambleApp .theme-2 { background: linear-gradient(135deg, var(--scr-card3), #e8f6ff); }
+    
+    /* responsive */
+    @media (max-width:520px){
+      #scrambleApp .scrambled { font-size:clamp(1.8rem, 9vw, 3rem); min-width:80%; }
+      #scrambleApp .panel { padding:18px; border-radius:20px; }
+      #scrambleApp .btn { padding:12px 14px; font-size:0.98rem; border-radius:12px; }
+    }
+
+    /* --- Teacher Control Panel UI --- */
+    #scrambleApp .teacher-trigger {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      opacity: 0.15;
+      cursor: pointer;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 100;
+    }
+    #scrambleApp .teacher-trigger:hover {
+      opacity: 1;
+      transform: rotate(90deg);
+    }
+
+    #scrambleApp .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 1;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    #scrambleApp .modal-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #scrambleApp .glass-panel {
+      background: var(--scr-teacher-bg);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.5);
+      box-shadow: 0 24px 48px rgba(0,0,0,0.15);
+      width: min(90%, 450px);
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: system-ui, sans-serif; /* Clean font for teacher panel */
+    }
+
+    #scrambleApp .modal-header {
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.5);
+    }
+    #scrambleApp .modal-header h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      color: var(--scr-text);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #scrambleApp .close-btn {
+      background: rgba(0,0,0,0.05);
+      border: none;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--scr-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    #scrambleApp .close-btn:hover { background: rgba(0,0,0,0.1); }
+
+    #scrambleApp .modal-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    #scrambleApp .control-group {
+      margin-bottom: 24px;
+    }
+    #scrambleApp .control-group label.group-title {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--scr-text);
+      font-size: 1.05rem;
+    }
+
+    /* Difficulty Toggle */
+    #scrambleApp .difficulty-options {
+      display: flex;
+      background: rgba(0,0,0,0.05);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+    }
+    #scrambleApp .diff-label {
+      flex: 1;
+      text-align: center;
+      padding: 8px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--scr-muted);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    #scrambleApp .diff-label input {
+      display: none;
+    }
+    #scrambleApp .diff-label:has(input:checked) {
+      background: white;
+      color: var(--scr-accent-dark);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Dictionary */
+    #scrambleApp .add-word-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    #scrambleApp .add-word-row input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 2px solid rgba(0,0,0,0.1);
+      font-size: 1rem;
+      outline: none;
+      background: rgba(255,255,255,0.8);
+      transition: border-color 0.2s ease, background 0.2s;
+    }
+    #scrambleApp .add-word-row input:focus {
+      border-color: var(--scr-accent);
+      background: white;
+    }
+    #scrambleApp .add-word-row button {
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      border-radius: 12px;
+    }
+
+    #scrambleApp .word-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    #scrambleApp .word-list::-webkit-scrollbar { width: 6px; }
+    #scrambleApp .word-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); border-radius: 4px; }
+    #scrambleApp .word-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+    
+    #scrambleApp .word-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    #scrambleApp .word-item #scrambleApp .remove-btn {
+      background: transparent;
+      border: none;
+      color: #ff4d4f;
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+      padding: 0 4px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    #scrambleApp .word-item #scrambleApp .remove-btn:hover { opacity: 1; }
+
+    #scrambleApp .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.5);
+    }
+    
+    #scrambleApp .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #333;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      z-index: 2000;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    #scrambleApp .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  
+
+    /* Specific fixes for full height containers */
+    #memoryApp {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+    }
+    #scrambleApp {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- App Navigation -->
+  <div id="appSwitcher">
+    <button class="switcher-btn active" data-target="memoryApp">Memory Game</button>
+    <button class="switcher-btn" data-target="scrambleApp">Scramble Cards</button>
+  </div>
+
+  <!-- Memory Game App -->
+  <div id="memoryApp">
+
+<div class="app" role="application" aria-label="Vocabulary Memory Game">
+  <header>
+    <div class="logo" aria-hidden="true">
+      <!-- simple futuristic glyph -->
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3" width="18" height="18" rx="4" fill="url(#g)"/>
+        <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#6be7ff"/><stop offset="1" stop-color="#7a5cff"/></linearGradient></defs>
+      </svg>
+    </div>
+    <div>
+      <h1>Vocabulary Memory</h1>
+      <p class="lead">Upload images, assign words, then play a refined picture ↔ vocabulary memory game.</p>
+    </div>
+  </header>
+
+  <div class="top">
+    <div class="panel" aria-labelledby="setup-heading">
+      <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;">
+        <div>
+          <div class="controls" role="group" aria-label="Upload controls">
+            <label class="file-btn" title="Upload images">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="opacity:.95"><path d="M12 3v10" stroke="#021026" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 7l4-4 4 4" stroke="#021026" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span style="color:var(--accent);">Choose Images</span>
+              <input id="fileInput" type="file" accept="image/*" multiple aria-label="Choose images to upload" />
+            </label>
+
+            <button id="shufflePairs" class="btn" title="Shuffle pairs">Shuffle</button>
+            <button id="clearAll" class="btn" title="Clear all">Clear</button>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <div class="pill" id="pairCount">Pairs 0</div>
+          <button id="startCasino" class="btn" style="color: var(--accent); border-color: rgba(0,102,204,0.3); border-width: 2px; border-style: solid;" disabled>Casino Shuffle</button>
+          <button id="startGame" class="btn primary" disabled>Play Memory</button>
+        </div>
+      </div>
+
+      <h3 id="setup-heading" style="margin-top:14px;color:#1a202c">Uploaded Pictures and Vocabulary</h3>
+      <div id="pairsContainer" class="pairs" aria-live="polite" aria-atomic="true"></div>
+      <p class="muted" style="margin-top:10px" id="hint">Tip: Type the vocabulary for each image. Press Enter to move to the next input.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Fullscreen Memory Board -->
+<div id="memoryBoard" class="memory-board-overlay">
+  <div class="memory-controls-bar">
+    <div style="display:flex;gap:12px;">
+      <button id="exitMemory" class="btn" style="background: #e2e8f0; color: #1a202c; border: 2px solid rgba(0,0,0,0.1);">Exit Memory</button>
+      <button id="resetMemory" class="btn" style="border: 2px solid rgba(0,0,0,0.2); background: #f7fafc;">Reset Game</button>
+      <button id="revealAll" class="btn" style="border: 2px solid rgba(0,0,0,0.2); background: #f7fafc;">Peek Cards</button>
+    </div>
+    <div class="memory-stats">
+      <div>Moves <span id="matchMoves">0</span></div>
+      <div>Matches <span id="matchCount">0</span> / <span id="totalPairs">0</span></div>
+    </div>
+  </div>
+  <div class="memory-grid-container">
+    <div id="gameGrid" class="memory-grid" role="grid" aria-label="Game board"></div>
+  </div>
+</div>
+
+<!-- Casino Mode Board -->
+<div id="casinoBoard" class="casino-board">
+  <div class="casino-controls">
+    <button id="exitCasino" class="btn" style="background: #e2e8f0; color: #1a202c; border: 2px solid rgba(0,0,0,0.1);">Exit Casino</button>
+    <button id="autoWash" class="btn primary">Auto-Wash</button>
+  </div>
+</div>
+
+<!-- Confetti canvas -->
+<canvas id="confetti" style="position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9999;display:none"></canvas>
+
+
+  </div>
+
+  <!-- Scramble Game App -->
+  <div id="scrambleApp" style="display: none;">
+
+  <!-- Discreet Teacher Panel Trigger -->
+  <button id="teacherBtn" class="teacher-trigger" aria-label="Teacher Control Panel">⚙️</button>
+
+  <div id="card" class="card theme-0">
+    <div class="panel" role="region" aria-label="ESL Scramble Card">
+      <div class="top-row">
+        <div class="progress" aria-hidden="true">
+          <span class="dot"></span>
+          <strong id="countLabel">1 / 13</strong>
+        </div>
+        <div class="nav" aria-hidden="true">
+          <span class="emoji">🎈</span>
+          <span class="emoji">🧸</span>
+        </div>
+      </div>
+
+      <div class="scramble-area">
+        <div id="scrambledText" class="scrambled" aria-live="polite"></div>
+        <div id="answerText" class="answer" aria-hidden="true"></div>
+
+        <div class="controls" role="group" aria-label="Card controls">
+          <button class="btn" id="showBtn" aria-pressed="false">Show Answer</button>
+          <button class="btn secondary" id="nextBtn">Next</button>
+          <button class="btn ghost" id="prevBtn">Prev</button>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="hint" id="difficultyHint">Slightly scrambled so kids can still read</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button id="shuffleBtn" class="btn ghost" title="Reshuffle current scramble">Reshuffle</button>
+          <button id="autoBtn" class="btn secondary" title="Auto play cards">Auto Play</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teacher Control Panel Modal -->
+  <div id="teacherModal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal-content glass-panel">
+      <div class="modal-header">
+        <h2>⚙️ Teacher Controls</h2>
+        <button id="closeTeacherBtn" class="close-btn" aria-label="Close">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Difficulty -->
+        <div class="control-group">
+          <label class="group-title">Scramble Difficulty</label>
+          <div class="difficulty-options">
+            <label class="diff-label">
+              <input type="radio" name="difficulty" value="easy" checked>
+              Easy
+            </label>
+            <label class="diff-label">
+              <input type="radio" name="difficulty" value="medium">
+              Medium
+            </label>
+            <label class="diff-label">
+              <input type="radio" name="difficulty" value="hard">
+              Hard
+            </label>
+          </div>
+        </div>
+        
+        <!-- Word Dictionary -->
+        <div class="control-group">
+          <label class="group-title">Dictionary (<span id="wordCount">0</span> words)</label>
+          <div class="add-word-row">
+            <input type="text" id="newWordInput" placeholder="Add a new word or phrase..." />
+            <button id="addWordBtn" class="btn">Add</button>
+          </div>
+          <div class="word-list" id="wordList">
+            <!-- Word items injected here -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button id="resetDefaultsBtn" class="btn ghost" style="padding: 10px 14px; font-size: 0.9rem;">Reset Defaults</button>
+        <button id="saveTeacherBtn" class="btn" style="padding: 10px 20px; font-size: 0.95rem;">Save & Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Saved Successfully!</div>
+
+  
+  </div>
+
+  <script>
+    // --- App Switcher Logic ---
+    document.querySelectorAll('.switcher-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.switcher-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        const targetId = e.target.getAttribute('data-target');
+        if (targetId === 'memoryApp') {
+          document.getElementById('memoryApp').style.display = 'flex';
+          document.getElementById('scrambleApp').style.display = 'none';
+        } else {
+          document.getElementById('memoryApp').style.display = 'none';
+          document.getElementById('scrambleApp').style.display = 'block';
+        }
+      });
+    });
+
+    // --- Memory Game Logic ---
+
+/* Futuristic Vocabulary Memory - polished UI + animations
+   - Single-file app
+   - Accessibility: keyboard, ARIA
+   - Performance: CSS-driven animations, minimal DOM updates
+*/
+
+(() => {
+  const fileInput = document.getElementById('fileInput');
+  const pairsContainer = document.getElementById('pairsContainer');
+  const startBtn = document.getElementById('startGame');
+  const clearAllBtn = document.getElementById('clearAll');
+  const shufflePairsBtn = document.getElementById('shufflePairs');
+  const hintEl = document.getElementById('hint');
+  const pairCountEl = document.getElementById('pairCount');
+
+  // Memory Elements
+  const memoryBoard = document.getElementById('memoryBoard');
+  const gameGrid = document.getElementById('gameGrid');
+  const exitMemoryBtn = document.getElementById('exitMemory');
+  const resetMemoryBtn = document.getElementById('resetMemory');
+  const revealAllBtn = document.getElementById('revealAll');
+  const matchCountEl = document.getElementById('matchCount');
+  const matchMovesEl = document.getElementById('matchMoves');
+  const totalPairsEl = document.getElementById('totalPairs');
+  const confettiCanvas = document.getElementById('confetti');
+
+  // Casino Elements
+  const startCasinoBtn = document.getElementById('startCasino');
+  const casinoBoard = document.getElementById('casinoBoard');
+  const exitCasinoBtn = document.getElementById('exitCasino');
+  const autoWashBtn = document.getElementById('autoWash');
+
+  let pairs = []; // {id, imgData, vocab}
+  let gameState = null; // {cards, flipped, matches, moves, startTime}
+
+  // Configuration Constants
+  const CONFIG = {
+    CARD_GAP: 12,
+    CONTAINER_PADDING: 24, // 12px on each side
+    CARD_ASPECT_RATIO: 3/4,
+    MAX_CARD_WIDTH: 200
+  };
+
+  // small helpers
+  const uid = () => Math.random().toString(36).slice(2,9);
+  const readFileAsDataURL = file => new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(fr.result);
+    fr.onerror = rej;
+    fr.readAsDataURL(file);
+  });
+  const shuffle = arr => {
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  };
+  const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // render pairs list
+  function renderPairs(){
+    pairsContainer.innerHTML = '';
+    pairs.forEach((p, idx) => {
+      const el = document.createElement('div');
+      el.className = 'pair';
+      el.innerHTML = `
+        <img class="thumb" src="${p.imgData}" alt="uploaded picture ${idx+1}" />
+        <input type="text" aria-label="Vocabulary for image ${idx+1}" placeholder="Type vocabulary" value="${p.vocab||''}" data-id="${p.id}" />
+        <button class="remove" aria-label="Remove picture ${idx+1}" data-id="${p.id}">✕</button>
+      `;
+      pairsContainer.appendChild(el);
+    });
+
+    // wire events
+    pairsContainer.querySelectorAll('input[type="text"]').forEach((inp, i, list) => {
+      inp.addEventListener('input', e => {
+        const id = e.target.dataset.id;
+        const p = pairs.find(x=>x.id===id);
+        if(p) p.vocab = e.target.value.trim();
+        updateStartState();
+      });
+      inp.addEventListener('keydown', e => {
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          const inputs = Array.from(pairsContainer.querySelectorAll('input[type="text"]'));
+          const idx = inputs.indexOf(e.target);
+          if(idx >= 0 && idx < inputs.length-1) inputs[idx+1].focus();
+        }
+      });
+    });
+
+    pairsContainer.querySelectorAll('.remove').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const id = e.target.dataset.id;
+        pairs = pairs.filter(x=>x.id!==id);
+        renderPairs();
+        updateStartState();
+      });
+    });
+
+    pairCountEl.textContent = `Pairs ${pairs.length}`;
+    totalPairsEl.textContent = pairs.length;
+  }
+
+  function updateStartState(){
+    const readyCount = pairs.filter(p => p.vocab && p.vocab.length>0).length;
+    startBtn.disabled = !(pairs.length>0 && readyCount === pairs.length);
+    startCasinoBtn.disabled = !(pairs.length>0 && readyCount === pairs.length);
+    hintEl.textContent = pairs.length ? 'Assign vocabulary to each image to enable Start' : 'Upload images and assign words to enable the game.';
+  }
+
+  // Handle incoming image files (from input, paste, or drop)
+  async function handleFiles(fileList) {
+    const files = Array.from(fileList || []).filter(f => f.type.startsWith('image/'));
+    if(!files.length) return;
+
+    const startIndex = pairs.length;
+    for(const f of files){
+      const data = await readFileAsDataURL(f);
+      pairs.push({id:uid(), imgData:data, vocab:''});
+    }
+    renderPairs();
+    updateStartState();
+
+    // subtle entrance animation for newly added items
+    const children = Array.from(pairsContainer.children);
+    for(let i = startIndex; i < children.length; i++) {
+      const el = children[i];
+      el.style.opacity = 0; el.style.transform = 'translateY(8px)';
+      requestAnimationFrame(()=> {
+        setTimeout(()=> { el.style.transition = 'all .36s cubic-bezier(.2,.9,.2,1)'; el.style.opacity=1; el.style.transform='translateY(0)'; }, (i - startIndex)*40);
+      });
+    }
+  }
+
+  // file input
+  fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+    fileInput.value = '';
+  });
+
+  // Global paste event listener for Snipping Tool & clipboard
+  document.addEventListener('paste', (e) => {
+    if(document.getElementById('memoryApp').style.display === 'none') return;
+    if(e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
+      const hasImage = Array.from(e.clipboardData.files).some(f => f.type.startsWith('image/'));
+      if(hasImage) {
+        e.preventDefault(); // Prevent default if pasting an image
+        handleFiles(e.clipboardData.files);
+      }
+    }
+  });
+
+  // Global drag & drop event listeners
+  const leftPanel = document.querySelector('.top .panel');
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    document.body.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+  });
+
+  document.body.addEventListener('dragenter', (e) => {
+    if(document.getElementById('memoryApp').style.display === 'none') return;
+    if (e.dataTransfer.types.includes('Files')) leftPanel.classList.add('drag-over');
+  });
+
+  document.body.addEventListener('dragover', (e) => {
+    if(document.getElementById('memoryApp').style.display === 'none') return;
+    if (e.dataTransfer.types.includes('Files')) leftPanel.classList.add('drag-over');
+  });
+
+  document.body.addEventListener('dragleave', (e) => {
+    if(document.getElementById('memoryApp').style.display === 'none') return;
+    // Only remove if we are leaving the actual document body (or dragging to an external window)
+    if(e.target === document.body || e.relatedTarget === null || e.relatedTarget === document.documentElement) {
+      leftPanel.classList.remove('drag-over');
+    }
+  });
+
+  document.body.addEventListener('drop', (e) => {
+    if(document.getElementById('memoryApp').style.display === 'none') return;
+    leftPanel.classList.remove('drag-over');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
+    }
+  });
+
+  clearAllBtn.addEventListener('click', () => {
+    if(!confirm('Clear all uploaded pictures and vocabulary?')) return;
+    pairs = [];
+    renderPairs();
+    updateStartState();
+    resetGame();
+  });
+
+  shufflePairsBtn.addEventListener('click', () => {
+    pairs = shuffle(pairs);
+    renderPairs();
+  });
+
+  // --- Play Memory Game Logic ---
+  startBtn.addEventListener('click', () => {
+    if(pairs.length === 0) return;
+
+    memoryBoard.style.display = 'block';
+
+    const cards = [];
+    pairs.forEach(p => {
+      cards.push({pairId:p.id, kind:'image', content:p.imgData});
+      cards.push({pairId:p.id, kind:'text', content:p.vocab});
+    });
+
+    const shuffled = shuffle(cards);
+    gameState = {
+      cards: shuffled.map((c,i) => ({...c, index:i, sequenceId: i + 1, matched:false})),
+      flipped: [],
+      matches: 0,
+      moves: 0,
+      startTime: Date.now(),
+      locked: false // Prevent clicking during animation
+    };
+
+    matchCountEl.textContent = '0';
+    matchMovesEl.textContent = '0';
+    totalPairsEl.textContent = pairs.length;
+
+    renderMemoryGame();
+  });
+
+  exitMemoryBtn.addEventListener('click', () => {
+    memoryBoard.style.display = 'none';
+    resetGame();
+  });
+
+  // Encapsulated dynamic sizing logic
+  function adjustGridScale() {
+    if (!gameState) return;
+    
+    const total = gameState.cards.length;
+    const cols = Math.ceil(Math.sqrt(total));
+    const rows = Math.ceil(total / cols);
+    
+    const containerWidth = gameGrid.parentElement.clientWidth - CONFIG.CONTAINER_PADDING;
+    const containerHeight = gameGrid.parentElement.clientHeight - CONFIG.CONTAINER_PADDING;
+    
+    const maxCardWidthHoriz = (containerWidth - (cols - 1) * CONFIG.CARD_GAP) / cols;
+    const maxCardHeightVert = (containerHeight - (rows - 1) * CONFIG.CARD_GAP) / rows;
+    
+    const optimalCardWidth = Math.min(maxCardWidthHoriz, maxCardHeightVert * CONFIG.CARD_ASPECT_RATIO, CONFIG.MAX_CARD_WIDTH);
+    const optimalCardHeight = optimalCardWidth / CONFIG.CARD_ASPECT_RATIO;
+    
+    const allCards = gameGrid.querySelectorAll('.m-card');
+    allCards.forEach(card => {
+      card.style.width = `${optimalCardWidth}px`;
+      card.style.height = `${optimalCardHeight}px`;
+    });
+  }
+
+  // Handle window resize with requestAnimationFrame for performance
+  let resizeTicking = false;
+  window.addEventListener('resize', () => {
+    if (memoryBoard.style.display !== 'block') return;
+    if (!resizeTicking) {
+      window.requestAnimationFrame(() => {
+        adjustGridScale();
+        resizeTicking = false;
+      });
+      resizeTicking = true;
+    }
+  });
+
+  // render game grid with dynamic sizing
+  function renderMemoryGame(){
+    gameGrid.innerHTML = '';
+    if(!gameState) return;
+
+    const total = gameState.cards.length;
+    const cols = Math.ceil(Math.sqrt(total));
+    gameGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+    gameState.cards.forEach((card, idx) => {
+      const c = document.createElement('div');
+      c.className = 'm-card';
+      c.dataset.index = idx;
+      c.setAttribute('aria-label', `Card number ${card.sequenceId}`);
+
+      const contentHtml = card.kind === 'image'
+        ? `<img src="${card.content}" alt="vocabulary image">`
+        : `<div class="word">${escapeHtml(card.content)}</div>`;
+
+      c.innerHTML = `
+        <div class="m-card-inner">
+          <div class="m-face m-back" data-seq="${card.sequenceId}">
+            <div class="m-back-number">${card.sequenceId}</div>
+            <div class="m-back-corner-bottom">${card.sequenceId}</div>
+          </div>
+          <div class="m-face m-front ${card.kind === 'text' ? 'text-only' : ''}">
+            ${contentHtml}
+          </div>
+        </div>
+      `;
+
+      // small staggered entrance
+      c.style.opacity = 0; c.style.transform = 'translateY(20px) scale(.9)';
+      setTimeout(()=> {
+        c.style.transition = 'all .4s cubic-bezier(.2,.9,.2,1)';
+        c.style.opacity = 1;
+        c.style.transform = 'none';
+        setTimeout(() => c.style.transition = '', 400);
+      }, idx * 40);
+
+      // click events
+      c.addEventListener('click', onMemoryCardClick);
+
+      gameGrid.appendChild(c);
+    });
+
+    // Re-calculate after DOM is populated
+    setTimeout(() => {
+      adjustGridScale();
+    }, 50);
+  }
+
+  function onMemoryCardClick(e){
+    if(!gameState || gameState.locked) return;
+
+    const cardEl = e.currentTarget;
+    const idx = Number(cardEl.dataset.index);
+    const card = gameState.cards[idx];
+
+    if(card.matched || gameState.flipped.includes(idx)) return;
+
+    // Flip card
+    cardEl.classList.add('flipped');
+    gameState.flipped.push(idx);
+
+    if(gameState.flipped.length === 2){
+      gameState.locked = true; // Lock board
+      gameState.moves++;
+      matchMovesEl.textContent = gameState.moves;
+
+      const [aIdx,bIdx] = gameState.flipped;
+      const a = gameState.cards[aIdx];
+      const b = gameState.cards[bIdx];
+
+      if(a.pairId === b.pairId && a.kind !== b.kind){
+        // Match!
+        a.matched = b.matched = true;
+        gameState.matches++;
+        matchCountEl.textContent = gameState.matches;
+
+        const els = Array.from(gameGrid.children);
+        [aIdx,bIdx].forEach(i => {
+          const el = els[i];
+          if(el) {
+            el.classList.add('matched');
+            // Ensure they stay flipped
+            el.classList.add('flipped');
+          }
+        });
+
+        gameState.flipped = [];
+        gameState.locked = false;
+
+        if(gameState.matches === pairs.length){
+          celebrate();
+        }
+      } else {
+        // No match - flip back
+        setTimeout(() => {
+          const els = Array.from(gameGrid.children);
+          [aIdx,bIdx].forEach(i => {
+            const el = els[i];
+            if(el) el.classList.remove('flipped');
+          });
+          gameState.flipped = [];
+          gameState.locked = false;
+        }, 1200); // Give them time to read both cards
+      }
+    }
+  }
+
+  resetMemoryBtn.addEventListener('click', () => {
+    if(!gameState) return;
+    if(!confirm('Restart this memory game?')) return;
+    startBtn.click(); // Re-trigger start logic
+  });
+
+  revealAllBtn.addEventListener('click', () => {
+    if(!gameState) return;
+    const els = Array.from(gameGrid.children);
+    els.forEach(el => el.classList.add('flipped'));
+
+    gameState.locked = true;
+
+    setTimeout(() => {
+      els.forEach((el, i) => {
+        if(!gameState.cards[i].matched) el.classList.remove('flipped');
+      });
+      gameState.locked = false;
+      gameState.flipped = []; // reset any half-flipped state
+    }, 2000);
+  });
+
+  function resetGame(){
+    gameState = null;
+    gameGrid.innerHTML = '';
+    matchCountEl.textContent = '0';
+    matchMovesEl.textContent = '0';
+  }
+
+  // --- Casino Shuffle Logic ---
+  let casinoMaxZ = 100;
+  let draggedCard = null;
+  let dragStartX = 0, dragStartY = 0;
+  let cardInitLeft = 0, cardInitTop = 0;
+  let dragHasMoved = false;
+
+  startCasinoBtn.addEventListener('click', () => {
+    if(pairs.length === 0) return;
+
+    // Setup Board
+    casinoBoard.style.display = 'block';
+
+    // Clear old cards, keep controls
+    Array.from(casinoBoard.children).forEach(child => {
+      if(!child.classList.contains('casino-controls')) child.remove();
+    });
+
+    // Layout math (center a grid of cards)
+    const cardW = 220, cardH = 310, gap = 40;
+    const cols = Math.ceil(Math.sqrt(pairs.length));
+    const rows = Math.ceil(pairs.length / cols);
+    const startX = (window.innerWidth - (cols * cardW + (cols - 1) * gap)) / 2;
+    const startY = (window.innerHeight - (rows * cardH + (rows - 1) * gap)) / 2;
+
+    pairs.forEach((p, i) => {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      const x = startX + col * (cardW + gap);
+      const y = startY + row * (cardH + gap);
+
+      const card = document.createElement('div');
+      card.className = 'c-card';
+      card.dataset.state = 'initial'; // initial (face up)
+      card.style.left = `${Math.max(20, x)}px`;
+      card.style.top = `${Math.max(80, y)}px`;
+      card.style.zIndex = ++casinoMaxZ;
+
+      card.innerHTML = `
+        <div class="c-card-inner">
+          <div class="c-face c-front">
+            <img src="${p.imgData}" draggable="false" />
+            <div class="vocab">${escapeHtml(p.vocab)}</div>
+          </div>
+          <div class="c-face c-back"></div>
+        </div>
+      `;
+
+      // Entrance animation
+      card.style.opacity = 0;
+      card.style.transform = 'translateY(20px) scale(0.9)';
+      setTimeout(() => {
+        card.style.transition = 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
+        card.style.opacity = 1;
+        card.style.transform = 'none';
+        // Remove transition after entrance to avoid drag lag, CSS hover handles the rest
+        setTimeout(() => card.style.transition = '', 500);
+      }, i * 60);
+
+      casinoBoard.appendChild(card);
+    });
+  });
+
+  exitCasinoBtn.addEventListener('click', () => {
+    casinoBoard.style.display = 'none';
+  });
+
+  // Drag & Drop Physics (Pointer Events for Mouse/Touch)
+  casinoBoard.addEventListener('pointerdown', e => {
+    const card = e.target.closest('.c-card');
+    if(!card) return;
+    if(e.button !== 0 && e.type.startsWith('mouse')) return; // Left click only
+
+    draggedCard = card;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    cardInitLeft = parseFloat(card.style.left) || 0;
+    cardInitTop = parseFloat(card.style.top) || 0;
+    dragHasMoved = false;
+
+    card.style.zIndex = ++casinoMaxZ;
+    card.setPointerCapture(e.pointerId);
+  });
+
+  casinoBoard.addEventListener('pointermove', e => {
+    if(!draggedCard) return;
+
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+
+    // Threshold to distinguish click from drag
+    if(!dragHasMoved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      dragHasMoved = true;
+      draggedCard.classList.add('dragging');
+    }
+
+    if(dragHasMoved) {
+      let newX = cardInitLeft + dx;
+      let newY = cardInitTop + dy;
+
+      // Keep mostly within screen bounds
+      newX = Math.max(-100, Math.min(newX, window.innerWidth - 120));
+      newY = Math.max(-100, Math.min(newY, window.innerHeight - 200));
+
+      draggedCard.style.left = `${newX}px`;
+      draggedCard.style.top = `${newY}px`;
+
+      // Velocity rotation for physical feel
+      const rot = Math.max(-25, Math.min(25, dx * 0.15));
+      draggedCard.style.transform = `rotate(${rot}deg)`;
+    }
+  });
+
+  casinoBoard.addEventListener('pointerup', e => {
+    if(!draggedCard) return;
+
+    if(dragHasMoved) {
+      draggedCard.classList.remove('dragging');
+      // Intentionally leave the slight rotation! Adds to the messy "shuffled" feel.
+    } else {
+      // It was a click!
+      handleCasinoClick(draggedCard);
+    }
+
+    draggedCard.releasePointerCapture(e.pointerId);
+    draggedCard = null;
+  });
+
+  function handleCasinoClick(card) {
+    const state = card.dataset.state;
+
+    if(state === 'initial') {
+      // Flip face down
+      card.dataset.state = 'flipped';
+    }
+    else if(state === 'flipped') {
+      // Unfocus others
+      document.querySelectorAll('.c-card[data-state="focused"]').forEach(c => {
+        c.dataset.state = 'flipped';
+      });
+      // Focus this one
+      card.dataset.state = 'focused';
+      card.style.zIndex = ++casinoMaxZ;
+    }
+    else if(state === 'focused') {
+      // Tada!
+      card.dataset.state = 'revealed';
+      card.style.zIndex = ++casinoMaxZ;
+      celebrate();
+    }
+    else if(state === 'revealed') {
+      // Reset back to flipped so they can play more
+      card.dataset.state = 'flipped';
+    }
+  }
+
+  // Auto-Wash (Scramble)
+  autoWashBtn.addEventListener('click', () => {
+    const cards = document.querySelectorAll('.c-card');
+    cards.forEach(card => {
+      card.classList.add('auto-washing');
+
+      const newX = Math.random() * (window.innerWidth - 250) + 20;
+      const newY = Math.random() * (window.innerHeight - 350) + 80;
+      const rot = (Math.random() - 0.5) * 80; // -40 to 40 deg
+
+      card.style.left = `${newX}px`;
+      card.style.top = `${newY}px`;
+      card.style.transform = `rotate(${rot}deg)`;
+      card.style.zIndex = ++casinoMaxZ;
+
+      setTimeout(() => {
+        card.classList.remove('auto-washing');
+      }, 850);
+    });
+  });
+
+  // celebration confetti (lightweight)
+  function celebrate(){
+    try {
+      confettiCanvas.style.display = 'block';
+      const ctx = confettiCanvas.getContext('2d');
+      const DPR = window.devicePixelRatio || 1;
+      confettiCanvas.width = window.innerWidth * DPR;
+      confettiCanvas.height = window.innerHeight * DPR;
+      confettiCanvas.style.width = window.innerWidth + 'px';
+      confettiCanvas.style.height = window.innerHeight + 'px';
+      ctx.scale(DPR, DPR);
+
+      const pieces = [];
+      const colors = ['#0066cc','#004499','#ffaa00','#00aa55'];
+      for(let i=0;i<80;i++){
+        pieces.push({
+          x: Math.random()*window.innerWidth,
+          y: Math.random()*-window.innerHeight,
+          vx: (Math.random()-0.5)*3,
+          vy: Math.random()*4+2,
+          size: Math.random()*8+4,
+          color: colors[Math.floor(Math.random()*colors.length)],
+          rot: Math.random()*360,
+          vr: (Math.random()-0.5)*8
+        });
+      }
+      let t0 = null;
+      function frame(t){
+        if(!t0) t0 = t;
+        const dt = (t - t0)/1000;
+        t0 = t;
+        ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+        pieces.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.06;
+          p.rot += p.vr;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot * Math.PI/180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+          ctx.restore();
+        });
+        // stop after 3.2s
+        if(performance.now() - startTime < 3200) requestAnimationFrame(frame);
+        else { ctx.clearRect(0,0,window.innerWidth,window.innerHeight); confettiCanvas.style.display='none'; }
+      }
+      const startTime = performance.now();
+      requestAnimationFrame(frame);
+    } catch(e){
+      // silent fail if canvas not supported
+      confettiCanvas.style.display = 'none';
+    }
+  }
+
+  // initial render
+  renderPairs();
+  updateStartState();
+
+  // expose for debugging (optional)
+  window._vocabApp = { pairs, renderPairs, resetGame };
+})();
+
+
+    // --- Scramble Game Logic ---
+    (() => {
+
+    // Default words for fallback
+    const defaultWords = [
+      "I'm sorry", "thank you", "Good Bye", "Sing", "Run", "Like", "Bear", "Dog",
+      "Swim", "Sing", "Cat", "Boy", "Girl", "One", "Two", "Three", "Four", "Five",
+      "Six", "Seven", "Eight", "Nine", "Ten", "Pencil", "Cap", "Flower"
+    ];
+
+    // State
+    let words = [];
+    let currentDifficulty = 'easy'; // 'easy', 'medium', 'hard'
+    let index = 0;
+    let currentScramble = '';
+    let autoPlay = false;
+    let autoTimer = null;
+    
+    // Teacher panel state
+    let tempWords = [];
+    let tempDifficulty = 'easy';
+
+    // DOM elements
+    const scrambledText = document.getElementById('scrambledText');
+    const answerText = document.getElementById('answerText');
+    const showBtn = document.getElementById('showBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const autoBtn = document.getElementById('autoBtn');
+    const countLabel = document.getElementById('countLabel');
+    const cardEl = document.getElementById('card');
+    const difficultyHint = document.getElementById('difficultyHint');
+
+    // Teacher Panel DOM
+    const teacherBtn = document.getElementById('teacherBtn');
+    const teacherModal = document.getElementById('teacherModal');
+    const closeTeacherBtn = document.getElementById('closeTeacherBtn');
+    const saveTeacherBtn = document.getElementById('saveTeacherBtn');
+    const resetDefaultsBtn = document.getElementById('resetDefaultsBtn');
+    const wordListEl = document.getElementById('wordList');
+    const newWordInput = document.getElementById('newWordInput');
+    const addWordBtn = document.getElementById('addWordBtn');
+    const wordCountEl = document.getElementById('wordCount');
+    const difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
+    const toastEl = document.getElementById('toast');
+
+    // --- State Management ---
+    function loadState() {
+      const savedWords = localStorage.getItem('scramble_words_v2');
+      const savedDiff = localStorage.getItem('scramble_diff_v2');
+      
+      if (savedWords) {
+        try {
+          words = JSON.parse(savedWords);
+          if (!Array.isArray(words) || words.length === 0) words = [...defaultWords];
+        } catch(e) {
+          words = [...defaultWords];
+        }
+      } else {
+        words = [...defaultWords];
+      }
+
+      if (savedDiff && ['easy', 'medium', 'hard'].includes(savedDiff)) {
+        currentDifficulty = savedDiff;
+      } else {
+        currentDifficulty = 'easy';
+      }
+    }
+
+    function saveState(newWords, newDiff) {
+      words = [...newWords];
+      currentDifficulty = newDiff;
+      localStorage.setItem('scramble_words_v2', JSON.stringify(words));
+      localStorage.setItem('scramble_diff_v2', currentDifficulty);
+      
+      // Reset index if out of bounds
+      if (index >= words.length) index = 0;
+      if (words.length === 0) {
+        scrambledText.textContent = "Empty";
+        answerText.textContent = "";
+      } else {
+        renderCard();
+      }
+      updateHint();
+      showToast("Settings Saved!");
+    }
+
+    function updateHint() {
+      if (currentDifficulty === 'easy') {
+        difficultyHint.textContent = "Slightly scrambled so kids can still read";
+      } else if (currentDifficulty === 'medium') {
+        difficultyHint.textContent = "Medium scramble: first letter kept intact";
+      } else {
+        difficultyHint.textContent = "Hard scramble: fully randomized";
+      }
+    }
+
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 2500);
+    }
+
+    // --- Scrambling Engine ---
+    function shuffleArray(arr){
+      for(let i = arr.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function swapLetters(letters, indices, idx1, idx2) {
+      const out = letters.slice();
+      const i = indices[idx1], j = indices[idx2];
+      out[i] = letters[j]; 
+      out[j] = letters[i];
+      return out.join('');
+    }
+
+    function scrambleToken(token, difficulty) {
+      const letters = token.split('');
+      if(!/[A-Za-z]/.test(token)) return token;
+
+      const letterIndices = [];
+      const letterChars = [];
+      for(let i=0; i<letters.length; i++){
+        if(/[A-Za-z]/.test(letters[i])){
+          letterIndices.push(i);
+          letterChars.push(letters[i]);
+        }
+      }
+      const n = letterChars.length;
+      if(n <= 1) return token;
+
+      if (difficulty === 'easy') {
+        if(n === 2) return swapLetters(letters, letterIndices, 0, 1);
+        if(n === 3) return swapLetters(letters, letterIndices, 1, 2);
+        
+        const first = letterChars[0];
+        const last = letterChars[n-1];
+        let middle = letterChars.slice(1, n-1);
+        
+        let shuffled = shuffleArray(middle.slice());
+        let tries = 0;
+        while(shuffled.join('') === middle.join('') && tries < 10) {
+          shuffled = shuffleArray(middle.slice());
+          tries++;
+        }
+        
+        const out = letters.slice();
+        for(let k=0; k<shuffled.length; k++){
+          out[letterIndices[1 + k]] = shuffled[k];
+        }
+        return out.join('');
+      } 
+      else if (difficulty === 'medium') {
+        if(n === 2) return swapLetters(letters, letterIndices, 0, 1);
+        
+        const first = letterChars[0];
+        let rest = letterChars.slice(1);
+        
+        let shuffled = shuffleArray(rest.slice());
+        let tries = 0;
+        while(shuffled.join('') === rest.join('') && tries < 10) {
+          shuffled = shuffleArray(rest.slice());
+          tries++;
+        }
+        
+        const out = letters.slice();
+        for(let k=0; k<shuffled.length; k++){
+          out[letterIndices[1 + k]] = shuffled[k];
+        }
+        return out.join('');
+      } 
+      else { // hard
+        let shuffled = shuffleArray(letterChars.slice());
+        let tries = 0;
+        while(shuffled.join('') === letterChars.join('') && tries < 10) {
+          shuffled = shuffleArray(letterChars.slice());
+          tries++;
+        }
+        
+        const out = letters.slice();
+        for(let k=0; k<shuffled.length; k++){
+          out[letterIndices[k]] = shuffled[k];
+        }
+        return out.join('');
+      }
+    }
+
+    function scramblePhrase(phrase, difficulty){
+      const parts = phrase.split(' ');
+      const scrambledParts = parts.map(p => scrambleToken(p, difficulty));
+      return scrambledParts.join(' ');
+    }
+
+    function ensureScrambled(original, difficulty){
+      let s = scramblePhrase(original, difficulty);
+      // Fallback if identical and length > 2
+      if(s === original && original.replace(/[^A-Za-z]/g,'').length > 2){
+        const tokens = original.split(' ');
+        let longestIdx = 0;
+        for(let i=1; i<tokens.length; i++){
+          if(tokens[i].replace(/[^A-Za-z]/g,'').length > tokens[longestIdx].replace(/[^A-Za-z]/g,'').length) longestIdx = i;
+        }
+        const tok = tokens[longestIdx];
+        const letters = tok.split('');
+        const letterPos = [];
+        for(let i=0; i<letters.length; i++) if(/[A-Za-z]/.test(letters[i])) letterPos.push(i);
+        
+        if(letterPos.length >= 2){
+          // Force swap middle two letters
+          const a = letterPos[Math.floor(letterPos.length/2)-1];
+          const b = letterPos[Math.floor(letterPos.length/2)];
+          [letters[a], letters[b]] = [letters[b], letters[a]];
+          tokens[longestIdx] = letters.join('');
+          s = tokens.join(' ');
+        }
+      }
+      return s;
+    }
+
+    // --- Core UI Logic ---
+    function updateTheme(i){
+      const theme = i % 3;
+      cardEl.classList.remove('theme-0','theme-1','theme-2');
+      cardEl.classList.add('theme-' + theme);
+    }
+
+    function renderCard(){
+      if(words.length === 0) return;
+      const original = words[index];
+      currentScramble = ensureScrambled(original, currentDifficulty);
+      scrambledText.textContent = currentScramble;
+      answerText.textContent = original;
+      answerText.style.display = 'none';
+      answerText.setAttribute('aria-hidden','true');
+      showBtn.setAttribute('aria-pressed','false');
+      showBtn.textContent = 'Show Answer';
+      countLabel.textContent = `${index + 1} / ${words.length}`;
+      updateTheme(index);
+    }
+
+    // --- Main Interactions ---
+    showBtn.addEventListener('click', () => {
+      if(words.length === 0) return;
+      const visible = answerText.style.display !== 'none';
+      if(visible){
+        answerText.style.display = 'none';
+        answerText.setAttribute('aria-hidden','true');
+        showBtn.setAttribute('aria-pressed','false');
+        showBtn.textContent = 'Show Answer';
+      } else {
+        answerText.style.display = 'block';
+        answerText.setAttribute('aria-hidden','false');
+        showBtn.setAttribute('aria-pressed','true');
+        showBtn.textContent = 'Hide Answer';
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if(words.length === 0) return;
+      index = (index + 1) % words.length;
+      renderCard();
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if(words.length === 0) return;
+      index = (index - 1 + words.length) % words.length;
+      renderCard();
+    });
+
+    shuffleBtn.addEventListener('click', () => {
+      if(words.length === 0) return;
+      currentScramble = ensureScrambled(words[index], currentDifficulty);
+      scrambledText.textContent = currentScramble;
+      answerText.style.display = 'none';
+      answerText.setAttribute('aria-hidden','true');
+      showBtn.setAttribute('aria-pressed','false');
+      showBtn.textContent = 'Show Answer';
+    });
+
+    autoBtn.addEventListener('click', () => {
+      if(words.length === 0) return;
+      autoPlay = !autoPlay;
+      if(autoPlay){
+        autoBtn.textContent = 'Stop';
+        autoBtn.classList.add('active');
+        autoTimer = setInterval(() => {
+          index = (index + 1) % words.length;
+          renderCard();
+        }, 3500);
+      } else {
+        autoBtn.textContent = 'Auto Play';
+        autoBtn.classList.remove('active');
+        clearInterval(autoTimer);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if(document.getElementById('scrambleApp').style.display === 'none') return;
+      // Don't trigger card shortcuts if typing in input
+      if(e.target.tagName === 'INPUT') return;
+      
+      if(e.code === 'Space'){
+        e.preventDefault();
+        if(words.length) { index = (index + 1) % words.length; renderCard(); }
+      } else if(e.code === 'Enter'){
+        showBtn.click();
+      } else if(e.code === 'ArrowRight'){
+        nextBtn.click();
+      } else if(e.code === 'ArrowLeft'){
+        prevBtn.click();
+      }
+    });
+
+    // --- Teacher Panel Logic ---
+    function openTeacherPanel() {
+      tempWords = [...words];
+      tempDifficulty = currentDifficulty;
+      
+      // Set difficulty radio
+      document.querySelector(`input[name="difficulty"][value="${tempDifficulty}"]`).checked = true;
+      
+      renderWordList();
+      
+      teacherModal.classList.remove('hidden');
+      teacherModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeTeacherPanel() {
+      teacherModal.classList.add('hidden');
+      teacherModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function renderWordList() {
+      wordListEl.innerHTML = '';
+      wordCountEl.textContent = tempWords.length;
+      
+      tempWords.forEach((word, idx) => {
+        const div = document.createElement('div');
+        div.className = 'word-item';
+        
+        const span = document.createElement('span');
+        span.textContent = word;
+        
+        const btn = document.createElement('button');
+        btn.className = 'remove-btn';
+        btn.innerHTML = '&times;';
+        btn.title = 'Remove word';
+        btn.onclick = () => {
+          tempWords.splice(idx, 1);
+          renderWordList();
+        };
+        
+        div.appendChild(span);
+        div.appendChild(btn);
+        wordListEl.appendChild(div);
+      });
+    }
+
+    function addNewWord() {
+      const val = newWordInput.value.trim();
+      if(val) {
+        tempWords.unshift(val); // Add to top of list
+        newWordInput.value = '';
+        renderWordList();
+      }
+    }
+
+    // Teacher Panel Event Listeners
+    teacherBtn.addEventListener('click', openTeacherPanel);
+    closeTeacherBtn.addEventListener('click', closeTeacherPanel);
+    
+    // Close on background click
+    teacherModal.addEventListener('click', (e) => {
+      if(e.target === teacherModal) closeTeacherPanel();
+    });
+
+    addWordBtn.addEventListener('click', addNewWord);
+    newWordInput.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter') {
+        e.preventDefault();
+        addNewWord();
+      }
+    });
+
+    difficultyRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        if(e.target.checked) {
+          tempDifficulty = e.target.value;
+        }
+      });
+    });
+
+    resetDefaultsBtn.addEventListener('click', () => {
+      if(confirm("Are you sure you want to reset to default words and easy difficulty?")) {
+        tempWords = [...defaultWords];
+        tempDifficulty = 'easy';
+        document.querySelector(`input[name="difficulty"][value="easy"]`).checked = true;
+        renderWordList();
+      }
+    });
+
+    saveTeacherBtn.addEventListener('click', () => {
+      if(tempWords.length === 0) {
+        alert("Dictionary cannot be empty. Please add at least one word.");
+        return;
+      }
+      saveState(tempWords, tempDifficulty);
+      closeTeacherPanel();
+    });
+
+    // --- Init ---
+    loadState();
+    updateHint();
+    renderCard();
+
+  
+    })();
+  </script>
+</body>
+</html>
