@@ -3,6 +3,8 @@ Unified Memory & Scramble Educational Apps
 ![Runtime](https://img.shields.io/badge/runtime-browser%20only-green)
 ![Storage](https://img.shields.io/badge/storage-localStorage%20%2B%20in--memory-orange)
 ![Dependencies](https://img.shields.io/badge/dependencies-Google%20Fonts%20only-lightgrey)
+
+
 Table of Contents
 Overview
 Application Suite
