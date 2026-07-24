@@ -1,0 +1,11 @@
+# CK Phonics 3 - Lesson 10 - Day 1
+# Format: Activity|minutes
+Greeting, Lesson Intro|5
+Letter and Sound [A]|10
+Word Intro [B]|10
+[TPR Activities]|10
+Blending Phonemes [C]|10
+Break|5
+Word Recognition [D, E]|10
+Book Work|10
+Phonics Arts and Crafts|20
