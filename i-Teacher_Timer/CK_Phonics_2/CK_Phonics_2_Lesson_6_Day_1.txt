@@ -1,0 +1,13 @@
+--- CK_Phonics_2_Lesson_6_Day_1.txt (原始)
+
+
++++ CK_Phonics_2_Lesson_6_Day_1.txt (修改后)
+Greeting, Lesson Intro|5
+Letter and Sound [A]|10
+Word Intro [B]|10
+[TPR Activities]|10
+Blending Phonemes [C]|10
+Break|5
+Word Recognition [D, E]|10
+Book Work|10
+Phonics Arts and Crafts|20
