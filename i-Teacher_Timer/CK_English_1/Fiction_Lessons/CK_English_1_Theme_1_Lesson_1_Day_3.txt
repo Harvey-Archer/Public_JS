@@ -1,0 +1,10 @@
+--- i-Teacher_Timer/CK_English_1/Lesson_Timer_Files/CK_English_1_Theme_1_Lesson_1_Day_3.txt (原始)
+
+
++++ i-Teacher_Timer/CK_English_1/Lesson_Timer_Files/CK_English_1_Theme_1_Lesson_1_Day_3.txt (修改后)
+Homework Check|5
+Reading Practice [C]|20
+Speaking Practice [A] [B] [C]|20
+Break|5
+Speaking Practice [D] [E] [F]|30
+Imagination|10
