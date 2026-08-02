@@ -1,7 +1,7 @@
---- i-Teacher_Timer/CK_English_1/Lesson_Timer_Files/CK_English_1_Theme_1_Lesson_3_Day_1.txt (原始)
+--- i-Teacher_Timer/CK_English_1/Lesson_Timer_Files/CK_English_1_Theme_1_Lesson_3_Day_1.txt 
 
++++ i-Teacher_Timer/CK_English_1/Lesson_Timer_Files/CK_English_1_Theme_1_Lesson_3_Day_1.txt 
 
-+++ i-Teacher_Timer/CK_English_1/Lesson_Timer_Files/CK_English_1_Theme_1_Lesson_3_Day_1.txt (修改后)
 Homework Check|5
 Lesson Quiz|10
 Phonics Review + Practice|20

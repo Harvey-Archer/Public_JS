@@ -1,7 +1,7 @@
---- i-Teacher_Timer/CK_English_1/Lesson_Timer_Files/CK_English_1_Theme_1_Lesson_1_Day_2.txt (原始)
+--- i-Teacher_Timer/CK_English_1/Lesson_Timer_Files/CK_English_1_Theme_1_Lesson_1_Day_2.txt
 
++++ i-Teacher_Timer/CK_English_1/Lesson_Timer_Files/CK_English_1_Theme_1_Lesson_1_Day_2.txt
 
-+++ i-Teacher_Timer/CK_English_1/Lesson_Timer_Files/CK_English_1_Theme_1_Lesson_1_Day_2.txt (修改后)
 Homework Check|5
 Vocab Review [Activities]|20
 Reading (Review)|20
