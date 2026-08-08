@@ -1,7 +1,4 @@
---- i-Teacher_Timer/CK_Phonics_1_Raw/timer_files/CK_Letter_and_Sound_1_Lesson_1_Day_3.txt (原始)
 
-
-+++ i-Teacher_Timer/CK_Phonics_1_Raw/timer_files/CK_Letter_and_Sound_1_Lesson_1_Day_3.txt (修改后)
 Review Words [TPR Activities]|10
 Word Recognition [P, Q]|10
 Word Recognition [S]|15

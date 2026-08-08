@@ -1,7 +1,4 @@
---- i-Teacher_Timer/CK_Phonics_1_Raw/timer_files/CK_Letter_and_Sound_1_Lesson_1_Day_2.txt (原始)
 
-
-+++ i-Teacher_Timer/CK_Phonics_1_Raw/timer_files/CK_Letter_and_Sound_1_Lesson_1_Day_2.txt (修改后)
 Phonics Song [T]|5
 Word Introduction [M]|10
 [TPR Activities]|10

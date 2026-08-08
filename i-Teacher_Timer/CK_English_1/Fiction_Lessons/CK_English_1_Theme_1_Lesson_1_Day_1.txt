@@ -1,7 +1,4 @@
---- i-Teacher_Timer/CK_English_1/Lesson_Timer_Files/CK_English_1_Theme_1_Lesson_1_Day_1.txt
 
-
-+++ i-Teacher_Timer/CK_English_1/Lesson_Timer_Files/CK_English_1_Theme_1_Lesson_1_Day_1.txt
 Homework Check|5
 Phonics Review + Practice|10
 Theme Intro/Lesson Intro|10

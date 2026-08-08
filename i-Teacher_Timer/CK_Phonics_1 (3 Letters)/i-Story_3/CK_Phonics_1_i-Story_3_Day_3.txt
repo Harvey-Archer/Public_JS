@@ -1,7 +1,4 @@
---- i-Teacher_Timer/CK_Phonics_1_Raw/timer_files_i_story/CK_Phonics_3_i-Story_3_Day_3.txt (原始)
 
-
-+++ i-Teacher_Timer/CK_Phonics_1_Raw/timer_files_i_story/CK_Phonics_3_i-Story_3_Day_3.txt (修改后)
 Review/ Story Reading|10
 Vocabulary|10
 Activities|10
