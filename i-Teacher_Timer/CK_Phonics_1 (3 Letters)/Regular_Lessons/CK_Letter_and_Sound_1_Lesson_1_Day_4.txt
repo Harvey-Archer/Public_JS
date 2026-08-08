@@ -1,0 +1,11 @@
+--- i-Teacher_Timer/CK_Phonics_1_Raw/timer_files/CK_Letter_and_Sound_1_Lesson_1_Day_4.txt (原始)
+
+
++++ i-Teacher_Timer/CK_Phonics_1_Raw/timer_files/CK_Letter_and_Sound_1_Lesson_1_Day_4.txt (修改后)
+Dialogue Review [TPR Activities]|10
+Role Play|15
+Dialogue Song|10
+Mini Project|10
+Break|5
+Imagination|15
+Phonics Arts and Crafts|25
