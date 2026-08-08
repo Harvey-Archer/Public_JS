@@ -1,0 +1,14 @@
+--- i-Teacher_Timer/CK_Phonics_1_Raw/timer_files_i_story/CK_Phonics_1_i-Story_1_Day_1.txt (原始)
+
+
++++ i-Teacher_Timer/CK_Phonics_1_Raw/timer_files_i_story/CK_Phonics_1_i-Story_1_Day_1.txt (修改后)
+Greet|5
+Cover Exploration|10
+Character Introduction|10
+Picture Walk & Story Prediction|20
+Break|5
+Story Reading|5
+Vocabulary|10
+Activities|10
+Role play Practice|10
+AR Sing and Dance|5

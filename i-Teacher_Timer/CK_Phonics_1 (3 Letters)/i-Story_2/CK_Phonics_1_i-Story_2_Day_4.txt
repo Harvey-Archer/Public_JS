@@ -1,0 +1,11 @@
+--- i-Teacher_Timer/CK_Phonics_1_Raw/timer_files_i_story/CK_Phonics_1_i-Story_1_Day_4.txt (原始)
+
+
++++ i-Teacher_Timer/CK_Phonics_1_Raw/timer_files_i_story/CK_Phonics_1_i-Story_1_Day_4.txt (修改后)
+Story Review|15
+Dramatization|20
+Sequencing/ Retelling|10
+Break|5
+Role Play Practice|10
+Role Play Recording|15
+AR Sing and Dance Recording|15
