@@ -1,0 +1,10 @@
+# CK Phonics 3 - i-Explore 6
+# Format: Activity|minutes
+Greet|5
+Let’s explore|15
+Let’s learn new words|10
+Let’s get ready to travel|15
+Break|5
+Check-in & i-Explore VR|10
+i-Explore Travel|25
+Travel Diary|5
