@@ -1,4 +1,4 @@
-# CK Phonics 2 - Lesson 1 - Day 4
+# This structure works for all day fours of all CK_Phonics_2 lessons.
 # Format: Activity|minutes
 Dialogue Review [TPR Activities]|10
 Role Play|15

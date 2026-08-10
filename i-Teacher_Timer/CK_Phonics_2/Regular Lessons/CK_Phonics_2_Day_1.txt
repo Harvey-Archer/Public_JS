@@ -1,4 +1,4 @@
-# CK Phonics 2 - Lesson 1 - Day 1
+# This structure works for all day ones of all CK_Phonics_2 lessons.
 # Format: Activity|minutes
 Greeting, Lesson Intro|5
 Letter and Sound [A]|10

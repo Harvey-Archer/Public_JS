@@ -1,4 +1,4 @@
-# CK Phonics 2 - Lesson 1 - Day 2
+# This structure works for all day twos of all CK_Phonics_2 lessons.
 # Format: Activity|minutes
 Word Review [TPR Activities]|15
 Word Meaning [F, G]|20

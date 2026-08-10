@@ -1,4 +1,4 @@
-# CK Phonics 2 - Lesson 1 - Day 3
+# This structure works for all day threes of all CK_Phonics_2 lessons.
 # Format: Activity|minutes
 Phonics Song [H]|10
 Sight Words [I, J]|15
