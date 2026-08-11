@@ -1,0 +1,11 @@
+# This structure works ONLY for CK_Phonics_Kids_Book_4 lesson 1.
+# Format: Activity|minutes
+Book Test 3|15
+Letter & Sound Introduction [A]|10
+Word Introduction [B]|10
+Word Recognition [D, E]|10
+Break|5
+Word Meaning [F, G]|10
+Phonics Song [H]|5
+Sight Words & Decodable [I, J, K]|10
+Reading Practice [Story B, C]|10

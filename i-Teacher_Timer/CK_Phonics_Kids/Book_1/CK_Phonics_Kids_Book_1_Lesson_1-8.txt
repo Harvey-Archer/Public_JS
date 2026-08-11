@@ -1,0 +1,12 @@
+# This structure works for all CK_Phonics_Kids_Book_1 lessons.
+# Format: Activity|minutes
+
+Greeting, Lesson Intro|5
+Letter & Sound Introduction [A, B]|10
+Letter & Sound Recognition [C, D]|10
+Word Introduction [E]|10
+Review Activity|10
+Break|5
+Sound in Words [F, G]|15
+Word Meaning [H, I]|15
+Phonics Song [J]|10

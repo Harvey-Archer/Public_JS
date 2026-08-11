@@ -1,0 +1,13 @@
+# This structure works for CK_Phonics_Kids_Book_2 odd-numbered lessons 3, 5, 7 and 9.
+# Format: Activity|minutes
+
+Greeting, Lesson Intro|5
+Letter & Sound Introduction [A]|10
+Word Introduction [B, C]|10
+Review Activities|10
+Word Recognition [D, E]|10
+Break|5
+Word Meaning [F, G]|15
+Phonics Song [H]|5
+Sight Words & Decodable [I, J, K]|10
+Reading Practice [Story B, C]|10
