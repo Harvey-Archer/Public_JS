@@ -1,12 +1,12 @@
-# i-Teacher Timer V4.5
+# i-Teacher Timer V4.6
 
 A lightweight, always-on-top classroom timer built for **AutoHotkey v2**. It runs structured lesson plans as a sequence of timed sections, helping you focus on teaching rather than managing the clock.
 
 ## 🚀 Quick Start
 
 1. Ensure **[AutoHotkey v2](https://www.autohotkey.com/)** is installed.
-2. Keep `i-Teacher_Timer_V4.5.ahk` and the `lessons` folder in the same directory.
-3. Double-click `i-Teacher_Timer_V4.5.ahk` to launch.
+2. Keep `i-Teacher_Timer_V4.6.ahk` and the `lessons` folder in the same directory.
+3. Double-click `i-Teacher_Timer_V4.6.ahk` to launch.
 4. Select a lesson plan (`.txt`) from the `lessons` folder.
 5. Press **F8** to start the timer!
 
@@ -54,13 +54,18 @@ You can inject full-screen, non-timed alerts into your lesson plan using the `@r
 ```
 When the timer reaches a reminder, it pauses the countdown, plays an alert sound, and flashes a red overlay until dismissed with **F8**.
 
+## ✨ What's New in V4.6
+- **Military-Grade Stability:** Implemented defense-in-depth architectural safeguards to prevent out-of-bounds array errors when lessons naturally conclude.
+- **Optimized Background Performance:** The hardware timer loop is now explicitly terminated upon lesson completion, saving CPU cycles and preventing asynchronous race conditions.
+- **Enhanced State Guards:** Reordered logical evaluations to guarantee paused states are strictly respected before array properties are queried.
+
 ## ✨ What's New in V4.5
 - **@reminder Alerts:** Custom text alerts that take over the UI with a red flashing background.
 - **Keyboard Zooming:** Scale the UI using `Ctrl + Plus/Minus` globally, alongside the existing hover-gated `Ctrl + MouseWheel`.
 - **Advanced Word-Wrap Scaling:** The internal `GetOptimalFontSize` engine now mathematically calculates exact wrapped-text heights and widest-word widths, ensuring text never clips horizontally or vertically.
 
 ## 🏗️ Architectural Notes (For Future Development)
-If modifying this codebase, be aware of the following structural paradigms introduced in V4.5:
+If modifying this codebase, be aware of the following structural paradigms introduced in V4.5 and V4.6:
 
 1. **The `isReminder` State Guard:**
    Reminders are injected into the `lesson` array with an `isReminder: true` property and a duration of `0`. Core functions (`Tick()`, `UpdateHUD()`, `Adjust()`, `TogglePause()`) rely on an `isReminder` early-return guard to prevent division-by-zero crashes, timer corruption, and conflicting hotkey states.
@@ -71,6 +76,8 @@ If modifying this codebase, be aware of the following structural paradigms intro
    - Because AHK Progress controls paint over transparent text controls when updated, `reminderTxt.Redraw()` is explicitly called during the `FlashReminder` loop to maintain the correct z-order.
 3. **Footer Protection:**
    The reminder overlay (`h226` base) is explicitly calculated to stop just above the footer line, leaving `infoTxt`, `closeTxt`, and `statusTxt` visible and interactive at all times as a fallback escape hatch.
+4. **Defense-in-Depth Timer Lifecycle (V4.6):**
+   The `Tick()` function utilizes strict bounds checking (`idx < 1 || idx > lesson.Length`) and state checking (`paused || transitioning`) *before* any array property evaluation. Furthermore, the hardware timer is fully halted (`SetTimer(Tick, 0)`) via `Complete()` and reliably restarted during `StartSection()` to eliminate runaway background execution.
 
 ## 📄 License
 MIT License. See the `LICENSE` file for details.
